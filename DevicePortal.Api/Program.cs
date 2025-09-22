@@ -21,6 +21,14 @@ builder.Services.AddControllers();
 
 // API documentation (requires dotnet restore)
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Configure HTTPS redirection
+builder.Services.AddHttpsRedirection(options =>
+{
+    options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
+    options.HttpsPort = 7027; // Match the HTTPS port from launchSettings.json
+});
 
 var app = builder.Build();
 
