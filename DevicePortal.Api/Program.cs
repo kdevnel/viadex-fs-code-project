@@ -24,11 +24,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Configure HTTPS redirection
-builder.Services.AddHttpsRedirection(options =>
-{
+builder.Services.AddHttpsRedirection( options => {
     options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
     options.HttpsPort = 7027; // Match the HTTPS port from launchSettings.json
-});
+} );
 
 var app = builder.Build();
 
@@ -43,5 +42,39 @@ if ( app.Environment.IsDevelopment() )
 app.UseHttpsRedirection();
 app.UseCors();
 app.MapControllers();
+
+// Check for database operation arguments
+if ( args.Length > 0 )
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    await context.Database.EnsureCreatedAsync();
+
+    switch ( args[0].ToLower() )
+    {
+        case "seed":
+            await DevicePortal.Api.Scripts.SeedDatabase.SeedDevicesAsync( context );
+            Console.WriteLine( "Seeding completed. Exiting..." );
+            break;
+
+        case "clear":
+            await DevicePortal.Api.Scripts.SeedDatabase.ClearDevicesAsync( context );
+            Console.WriteLine( "Clear completed. Exiting..." );
+            break;
+
+        case "reseed":
+            await DevicePortal.Api.Scripts.SeedDatabase.ReseedDevicesAsync( context );
+            Console.WriteLine( "Reseed completed. Exiting..." );
+            break;
+
+        default:
+            Console.WriteLine( $"Unknown command: {args[0]}" );
+            Console.WriteLine( "Available commands: seed, clear, reseed" );
+            break;
+    }
+
+    return;
+}
 
 app.Run();

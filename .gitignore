@@ -79,6 +79,9 @@ artifacts/
 !.vscode/extensions.json
 *.code-workspace
 
+# Bruno
+bruno/*
+
 # ===================
 # Frontend (Node.js)
 # ===================
