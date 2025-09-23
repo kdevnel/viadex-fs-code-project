@@ -28,8 +28,23 @@ export const useDevicesStore = defineStore('devices', () => {
     };
 
     devices.value.forEach(device => {
-      if (device.status && distribution.hasOwnProperty(device.status)) {
-        distribution[device.status]++;
+      // Handle both numeric and string status values
+      let statusKey: string | undefined;
+
+      // Convert to number for comparison since backend returns numeric enum values
+      const statusAsNumber = Number(device.status);
+      const statusAsString = String(device.status);
+
+      if (statusAsNumber === 1 || statusAsString === 'Active') {
+        statusKey = 'Active';
+      } else if (statusAsNumber === 2 || statusAsString === 'Retired') {
+        statusKey = 'Retired';
+      } else if (statusAsNumber === 3 || statusAsString === 'UnderRepair') {
+        statusKey = 'UnderRepair';
+      }
+
+      if (statusKey && distribution.hasOwnProperty(statusKey)) {
+        distribution[statusKey]++;
       }
     });
 

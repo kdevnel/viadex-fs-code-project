@@ -30,6 +30,7 @@
             v-model="statusFilter"
             class="filter-select"
             @change="handleStatusChange"
+            data-test="status-filter"
           >
             <option value="">All Statuses</option>
             <option value="Active">Active</option>
@@ -406,10 +407,19 @@ const getStatusClass = (status?: string) => {
   }
 };
 
-const getStatusText = (status?: string) => {
+const getStatusText = (status?: string | number) => {
   switch (status) {
-    case 'UnderRepair': return 'Under Repair';
-    default: return status || 'Unknown';
+    case 1:
+    case 'Active':
+      return 'Active';
+    case 2:
+    case 'Retired':
+      return 'Retired';
+    case 3:
+    case 'UnderRepair':
+      return 'Under Repair';
+    default:
+      return 'Unknown';
   }
 };
 
