@@ -1,0 +1,50 @@
+{
+  "name": "viadex-device-portal",
+  "version": "1.0.0",
+  "description": "Full-stack device leasing portal with Vue 3 frontend and ASP.NET Core backend",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "setup": "./scripts/setup.sh",
+    "setup:win": "scripts/setup.bat",
+    "dev": "./scripts/dev.sh",
+    "dev:win": "scripts/dev.bat",
+    "dev:api": "cd DevicePortal.Api && dotnet watch --launch-profile https",
+    "dev:web": "cd device-portal-web && npm run dev",
+    "docker:sql": "docker run -d -e 'ACCEPT_EULA=Y' -e 'MSSQL_SA_PASSWORD=Pa55w0rd' -p 1433:1433 -v mssql-data:/var/opt/mssql --name mssql mcr.microsoft.com/mssql/server || docker start mssql",
+    "docker:sql:stop": "docker stop mssql",
+    "docker:sql:remove": "docker rm mssql",
+    "db:update": "cd DevicePortal.Api && dotnet ef database update",
+    "db:seed": "cd DevicePortal.Api && dotnet run -- seed",
+    "db:reseed": "cd DevicePortal.Api && dotnet run -- reseed",
+    "clean:api": "cd DevicePortal.Api && dotnet clean",
+    "clean:web": "cd device-portal-web && rm -rf node_modules dist",
+    "clean:docker": "npm run docker:sql:stop",
+    "build:api": "cd DevicePortal.Api && dotnet build",
+    "build:web": "cd device-portal-web && npm run build",
+    "test:api": "cd DevicePortal.Api && dotnet test",
+    "test:web": "cd device-portal-web && npm run test:unit",
+    "lint": "cd device-portal-web && npm run lint",
+    "format": "cd device-portal-web && npm run format"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "viadex",
+    "device-portal",
+    "vue3",
+    "typescript",
+    "aspnet-core",
+    "entity-framework",
+    "sql-server",
+    "full-stack"
+  ],
+  "author": "Viadex",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kdevnel/viadex-fs-code-project.git"
+  }
+}

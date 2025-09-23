@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # SQL Server Database (only containerized component)
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server
+    container_name: viadex-sql-dev
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Pa55w0rd
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - viadex-mssql-data:/var/opt/mssql
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P Pa55w0rd -Q "SELECT 1"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  viadex-mssql-data:
+    driver: local
