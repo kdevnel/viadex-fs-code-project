@@ -11,6 +11,7 @@ builder.Services.AddDbContext<AppDbContext>( o =>
 
 // Service registration
 builder.Services.AddScoped<IDeviceService, DeviceService>();
+builder.Services.AddScoped<IShipmentService, ShipmentService>();
 
 // CORS configuration
 builder.Services.AddCors( o => o.AddDefaultPolicy( p =>
@@ -54,23 +55,51 @@ if ( args.Length > 0 )
     switch ( args[0].ToLower() )
     {
         case "seed":
-            await DevicePortal.Api.Scripts.SeedDatabase.SeedDevicesAsync( context );
+            await DevicePortal.Api.Scripts.SeedDatabase.SeedAllAsync( context );
             Console.WriteLine( "Seeding completed. Exiting..." );
             break;
 
+        case "seed-devices":
+            await DevicePortal.Api.Scripts.SeedDatabase.SeedDevicesAsync( context );
+            Console.WriteLine( "Device seeding completed. Exiting..." );
+            break;
+
+        case "seed-shipments":
+            await DevicePortal.Api.Scripts.SeedDatabase.SeedShipmentsAsync( context );
+            Console.WriteLine( "Shipment seeding completed. Exiting..." );
+            break;
+
         case "clear":
-            await DevicePortal.Api.Scripts.SeedDatabase.ClearDevicesAsync( context );
+            await DevicePortal.Api.Scripts.SeedDatabase.ClearAllAsync( context );
             Console.WriteLine( "Clear completed. Exiting..." );
             break;
 
+        case "clear-devices":
+            await DevicePortal.Api.Scripts.SeedDatabase.ClearDevicesAsync( context );
+            Console.WriteLine( "Device clear completed. Exiting..." );
+            break;
+
+        case "clear-shipments":
+            await DevicePortal.Api.Scripts.SeedDatabase.ClearShipmentsAsync( context );
+            Console.WriteLine( "Shipment clear completed. Exiting..." );
+            break;
+
         case "reseed":
-            await DevicePortal.Api.Scripts.SeedDatabase.ReseedDevicesAsync( context );
+            await DevicePortal.Api.Scripts.SeedDatabase.ReseedAllAsync( context );
             Console.WriteLine( "Reseed completed. Exiting..." );
+            break;
+
+        case "reseed-devices":
+            await DevicePortal.Api.Scripts.SeedDatabase.ReseedDevicesAsync( context );
+            Console.WriteLine( "Device reseed completed. Exiting..." );
             break;
 
         default:
             Console.WriteLine( $"Unknown command: {args[0]}" );
-            Console.WriteLine( "Available commands: seed, clear, reseed" );
+            Console.WriteLine( "Available commands:" );
+            Console.WriteLine( "  seed, seed-devices, seed-shipments" );
+            Console.WriteLine( "  clear, clear-devices, clear-shipments" );
+            Console.WriteLine( "  reseed, reseed-devices" );
             break;
     }
 

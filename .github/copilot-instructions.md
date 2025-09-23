@@ -12,6 +12,14 @@ This is a **full-stack device leasing and customer portal application** combinin
 3. **Quote Generator** - Calculate leasing quotes (device + duration + support tier)
 4. **Data Visualization** - Charts from live API data (device status distribution, shipment status)
 
+## Localization & Context
+⚠️ **IMPORTANT**: This application uses **UK context** for all sample data and examples:
+- Use UK addresses (postcodes, cities like London, Manchester, Edinburgh, Birmingham, Cardiff, Brighton)
+- Use British names (Thompson, Williams, Davies, Clarke, Roberts, etc.)
+- Use UK formatting conventions where applicable
+- Address format: "Number Street, City, Postcode" (e.g., "42 Baker Street, London, W1U 3AA")
+- Use GBP (£) for currency values
+
 ## Architecture Overview
 
 This is a **service-oriented ASP.NET Core API** with enhanced architecture patterns. The design emphasizes separation of concerns through distinct layers:
