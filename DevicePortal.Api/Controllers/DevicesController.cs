@@ -1,5 +1,6 @@
 using DevicePortal.Api.DTOs;
 using DevicePortal.Api.Extensions;
+using DevicePortal.Api.Models;
 using DevicePortal.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,14 +22,15 @@ public class DevicesController : ControllerBase
     /// </summary>
     /// <param name="page">Page number (starting from 1)</param>
     /// <param name="pageSize">Number of items per page (max 100)</param>
+    /// <param name="status">Optional status filter (Active, Retired, UnderRepair)</param>
     /// <returns>Paginated device list</returns>
     [HttpGet]
     [ProducesResponseType( typeof( DevicePagedResponseDto ), StatusCodes.Status200OK )]
     [ProducesResponseType( typeof( ApiErrorResponse ), StatusCodes.Status400BadRequest )]
-    public async Task<IActionResult> Get( [FromQuery] int page = 1, [FromQuery] int pageSize = 20 )
+    public async Task<IActionResult> Get( [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] DeviceStatus? status = null )
     {
         // ✅ Controller only handles HTTP concerns - delegate business logic to service
-        var result = await _deviceService.GetDevicesAsync( page, pageSize );
+        var result = await _deviceService.GetDevicesAsync( page, pageSize, status );
 
         if ( !result.IsSuccess )
             return BadRequest( new ApiErrorResponse { Error = result.ErrorMessage! } );
@@ -112,5 +114,23 @@ public class DevicesController : ControllerBase
         }
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Get device status distribution for charts
+    /// </summary>
+    /// <returns>Status distribution data</returns>
+    [HttpGet( "status-distribution" )]
+    [ProducesResponseType( typeof( DeviceStatusDistributionDto ), StatusCodes.Status200OK )]
+    [ProducesResponseType( typeof( ApiErrorResponse ), StatusCodes.Status400BadRequest )]
+    public async Task<IActionResult> GetStatusDistribution()
+    {
+        // ✅ Controller only handles HTTP concerns - delegate to service
+        var result = await _deviceService.GetDeviceStatusDistributionAsync();
+
+        if ( !result.IsSuccess )
+            return BadRequest( new ApiErrorResponse { Error = result.ErrorMessage! } );
+
+        return Ok( result.ToDto() );
     }
 }

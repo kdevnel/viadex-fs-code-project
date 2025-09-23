@@ -14,7 +14,7 @@ public class DeviceService : IDeviceService
         _db = db;
     }
 
-    public async Task<DevicePagedResult> GetDevicesAsync( int page, int pageSize )
+    public async Task<DevicePagedResult> GetDevicesAsync( int page, int pageSize, DeviceStatus? status = null )
     {
         // Business logic: Validation rules
         if ( page <= 0 || pageSize <= 0 )
@@ -26,8 +26,14 @@ public class DeviceService : IDeviceService
         try
         {
             // Business logic: Data access and calculations
-            var total = await _db.Devices.CountAsync();
-            var items = await _db.Devices
+            var query = _db.Devices.AsQueryable();
+
+            // Apply status filter if provided
+            if ( status.HasValue )
+                query = query.Where( d => d.Status == status.Value );
+
+            var total = await query.CountAsync();
+            var items = await query
                 .OrderBy( d => d.Id )
                 .Skip( (page - 1) * pageSize )
                 .Take( pageSize )
@@ -121,6 +127,23 @@ public class DeviceService : IDeviceService
         catch ( Exception ex )
         {
             return DeviceDeleteResult.Failure( $"Error deleting device: {ex.Message}" );
+        }
+    }
+
+    public async Task<DeviceStatusDistributionResult> GetDeviceStatusDistributionAsync()
+    {
+        try
+        {
+            // Business logic: Calculate status distribution
+            var distribution = await _db.Devices
+                .GroupBy( d => d.Status )
+                .ToDictionaryAsync( g => g.Key, g => g.Count() );
+
+            return DeviceStatusDistributionResult.Success( distribution );
+        }
+        catch ( Exception ex )
+        {
+            return DeviceStatusDistributionResult.Failure( $"Error getting status distribution: {ex.Message}" );
         }
     }
 }
