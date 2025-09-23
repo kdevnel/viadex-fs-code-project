@@ -47,6 +47,7 @@
             class="filter-select"
             @change="handlePageSizeChange"
           >
+            <option :value="5">5</option>
             <option :value="10">10</option>
             <option :value="20">20</option>
             <option :value="50">50</option>
@@ -347,12 +348,12 @@ const handleRetry = () => {
 const handleViewDevice = (device: Device) => {
   deviceStore.selectDevice(device);
   // Navigate to detail view or show modal
-  console.log('View device:', device);
+  alert('View device: ' + device.name);
 };
 
 const handleEditDevice = (device: Device) => {
   // Navigate to edit form or show modal
-  console.log('Edit device:', device);
+  alert('Edit device: ' + device.name);
 };
 
 const handleDeleteDevice = async (device: Device) => {
