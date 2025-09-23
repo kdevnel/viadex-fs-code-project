@@ -44,7 +44,7 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.config.baseURL}${endpoint}`;
-    
+
     // Merge headers
     const headers = new Headers({
       ...this.config.headers,
@@ -73,8 +73,19 @@ class ApiClient {
         });
       }
 
-      // Parse JSON response
-      const data = await response.json();
+      // Parse JSON response only if there's content
+      // HTTP 204 (No Content) and similar responses have no body
+      let data;
+      if (response.status === 204 || response.headers.get('content-length') === '0') {
+        data = null;
+      } else {
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          data = await response.json();
+        } else {
+          data = null;
+        }
+      }
 
       return {
         data,
@@ -84,17 +95,17 @@ class ApiClient {
       };
     } catch (error) {
       clearTimeout(timeoutId);
-      
+
       if (error instanceof Error && error.name === 'AbortError') {
         throw new ApiError({ message: 'Request timeout' });
       }
-      
+
       if (error instanceof ApiError) {
         throw error;
       }
-      
-      throw new ApiError({ 
-        message: error instanceof Error ? error.message : 'Network error occurred' 
+
+      throw new ApiError({
+        message: error instanceof Error ? error.message : 'Network error occurred'
       });
     }
   }

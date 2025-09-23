@@ -98,4 +98,29 @@ public class DeviceService : IDeviceService
             return DeviceCreateResult.Failure( $"Error creating device: {ex.Message}" );
         }
     }
+
+    public async Task<DeviceDeleteResult> DeleteDeviceAsync( int id )
+    {
+        try
+        {
+            // Input validation
+            if ( id <= 0 )
+                return DeviceDeleteResult.Failure( "Invalid device ID" );
+
+            // Data access
+            var device = await _db.Devices.FindAsync( id );
+            if ( device == null )
+                return DeviceDeleteResult.Failure( "Device not found" );
+
+            // Data deletion
+            _db.Devices.Remove( device );
+            await _db.SaveChangesAsync();
+
+            return DeviceDeleteResult.Success();
+        }
+        catch ( Exception ex )
+        {
+            return DeviceDeleteResult.Failure( $"Error deleting device: {ex.Message}" );
+        }
+    }
 }

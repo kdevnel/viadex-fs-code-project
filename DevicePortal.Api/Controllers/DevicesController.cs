@@ -88,4 +88,29 @@ public class DevicesController : ControllerBase
         var responseDto = result.Device!.ToDto();
         return CreatedAtAction( nameof( GetById ), new { id = responseDto.Id }, responseDto );
     }
+
+    /// <summary>
+    /// Delete a device by ID
+    /// </summary>
+    /// <param name="id">Device ID</param>
+    /// <returns>No content on success</returns>
+    [HttpDelete( "{id:int}" )]
+    [ProducesResponseType( StatusCodes.Status204NoContent )]
+    [ProducesResponseType( typeof( ApiErrorResponse ), StatusCodes.Status400BadRequest )]
+    [ProducesResponseType( StatusCodes.Status404NotFound )]
+    public async Task<IActionResult> Delete( int id )
+    {
+        // ✅ Controller only handles HTTP concerns - delegate to service
+        var result = await _deviceService.DeleteDeviceAsync( id );
+
+        if ( !result.IsSuccess )
+        {
+            if ( result.ErrorMessage == "NotFound" )
+                return NotFound();
+
+            return BadRequest( new ApiErrorResponse { Error = result.ErrorMessage! } );
+        }
+
+        return NoContent();
+    }
 }

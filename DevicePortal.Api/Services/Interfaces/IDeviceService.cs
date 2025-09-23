@@ -7,6 +7,7 @@ public interface IDeviceService
     Task<DevicePagedResult> GetDevicesAsync( int page, int pageSize );
     Task<Device?> GetDeviceByIdAsync( int id );
     Task<DeviceCreateResult> CreateDeviceAsync( Device device );
+    Task<DeviceDeleteResult> DeleteDeviceAsync( int id );
 }
 
 public class DevicePagedResult
@@ -33,5 +34,17 @@ public class DeviceCreateResult
         new() { IsSuccess = true, Device = device };
 
     public static DeviceCreateResult Failure( string errorMessage ) =>
+        new() { IsSuccess = false, ErrorMessage = errorMessage };
+}
+
+public class DeviceDeleteResult
+{
+    public bool IsSuccess { get; init; }
+    public string? ErrorMessage { get; init; }
+
+    public static DeviceDeleteResult Success() =>
+        new() { IsSuccess = true };
+
+    public static DeviceDeleteResult Failure( string errorMessage ) =>
         new() { IsSuccess = false, ErrorMessage = errorMessage };
 }
