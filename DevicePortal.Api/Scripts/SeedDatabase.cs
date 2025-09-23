@@ -24,42 +24,48 @@ public static class SeedDatabase
                 Name = "iPhone 15 Pro",
                 Model = "A3102",
                 MonthlyPrice = 45.99m,
-                PurchaseDate = new DateTime(2024, 1, 15)
+                PurchaseDate = new DateTime(2024, 1, 15),
+                Status = DeviceStatus.Active
             },
             new Device
             {
                 Name = "Samsung Galaxy S24",
                 Model = "SM-S921B",
                 MonthlyPrice = 42.50m,
-                PurchaseDate = new DateTime(2025, 2, 20)
+                PurchaseDate = new DateTime(2025, 2, 20),
+                Status = DeviceStatus.Active
             },
             new Device
             {
                 Name = "iPad Air",
                 Model = "A2316",
                 MonthlyPrice = 25.99m,
-                PurchaseDate = new DateTime(2024, 3, 10)
+                PurchaseDate = new DateTime(2024, 3, 10),
+                Status = DeviceStatus.UnderRepair
             },
             new Device
             {
                 Name = "MacBook Pro 14\"",
                 Model = "M3",
                 MonthlyPrice = 89.99m,
-                PurchaseDate = new DateTime(2024, 1, 5)
+                PurchaseDate = new DateTime(2024, 1, 5),
+                Status = DeviceStatus.Active
             },
             new Device
             {
                 Name = "Dell XPS 13",
                 Model = "9340",
                 MonthlyPrice = 55.75m,
-                PurchaseDate = new DateTime(2023, 4, 12)
+                PurchaseDate = new DateTime(2023, 4, 12),
+                Status = DeviceStatus.Retired
             },
             new Device
             {
                 Name = "Google Pixel 8",
                 Model = "GC3VE",
                 MonthlyPrice = 38.99m,
-                PurchaseDate = new DateTime(2024, 2, 28)
+                PurchaseDate = new DateTime(2024, 2, 28),
+                Status = DeviceStatus.Active
             }
         };
 

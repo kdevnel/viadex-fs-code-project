@@ -23,6 +23,12 @@ ehthumbs_vista.db
 Desktop.ini
 $RECYCLE.BIN/
 *.lnk
+*.cmd
+*.bat.log
+*.ps1.log
+
+# PowerShell
+*.ps1.bak
 
 # ================
 # .NET Backend

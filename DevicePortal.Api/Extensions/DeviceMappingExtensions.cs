@@ -11,7 +11,8 @@ public static class DeviceMappingExtensions
         return new Device {
             Name = dto.Name.Trim(),
             Model = dto.Model.Trim(),
-            MonthlyPrice = dto.MonthlyPrice
+            MonthlyPrice = dto.MonthlyPrice,
+            Status = dto.Status
             // PurchaseDate will be set by the service
         };
     }
@@ -23,7 +24,8 @@ public static class DeviceMappingExtensions
             Name = entity.Name,
             Model = entity.Model,
             MonthlyPrice = entity.MonthlyPrice,
-            PurchaseDate = entity.PurchaseDate
+            PurchaseDate = entity.PurchaseDate,
+            Status = entity.Status
         };
     }
 
@@ -37,6 +39,16 @@ public static class DeviceMappingExtensions
         return new DevicePagedResponseDto {
             Total = result.Total,
             Items = result.Items.ToDto()
+        };
+    }
+
+    public static DeviceStatusDistributionDto ToDto( this DeviceStatusDistributionResult result )
+    {
+        return new DeviceStatusDistributionDto {
+            Distribution = result.Distribution.ToDictionary(
+                kvp => kvp.Key.ToString(),
+                kvp => kvp.Value
+            )
         };
     }
 }

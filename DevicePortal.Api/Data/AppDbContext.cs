@@ -10,5 +10,6 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating( ModelBuilder b )
     {
         b.Entity<Device>().Property( d => d.MonthlyPrice ).HasColumnType( "decimal(7,2)" );
+        b.Entity<Device>().Property( d => d.Status ).HasConversion<int>();
     }
 }

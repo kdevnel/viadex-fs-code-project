@@ -4,9 +4,11 @@ namespace DevicePortal.Api.Services.Interfaces;
 
 public interface IDeviceService
 {
-    Task<DevicePagedResult> GetDevicesAsync( int page, int pageSize );
+    Task<DevicePagedResult> GetDevicesAsync( int page, int pageSize, DeviceStatus? status = null );
     Task<Device?> GetDeviceByIdAsync( int id );
     Task<DeviceCreateResult> CreateDeviceAsync( Device device );
+    Task<DeviceDeleteResult> DeleteDeviceAsync( int id );
+    Task<DeviceStatusDistributionResult> GetDeviceStatusDistributionAsync();
 }
 
 public class DevicePagedResult
@@ -33,5 +35,30 @@ public class DeviceCreateResult
         new() { IsSuccess = true, Device = device };
 
     public static DeviceCreateResult Failure( string errorMessage ) =>
+        new() { IsSuccess = false, ErrorMessage = errorMessage };
+}
+
+public class DeviceDeleteResult
+{
+    public bool IsSuccess { get; init; }
+    public string? ErrorMessage { get; init; }
+
+    public static DeviceDeleteResult Success() =>
+        new() { IsSuccess = true };
+
+    public static DeviceDeleteResult Failure( string errorMessage ) =>
+        new() { IsSuccess = false, ErrorMessage = errorMessage };
+}
+
+public class DeviceStatusDistributionResult
+{
+    public bool IsSuccess { get; init; }
+    public string? ErrorMessage { get; init; }
+    public Dictionary<DeviceStatus, int> Distribution { get; init; } = new();
+
+    public static DeviceStatusDistributionResult Success( Dictionary<DeviceStatus, int> distribution ) =>
+        new() { IsSuccess = true, Distribution = distribution };
+
+    public static DeviceStatusDistributionResult Failure( string errorMessage ) =>
         new() { IsSuccess = false, ErrorMessage = errorMessage };
 }

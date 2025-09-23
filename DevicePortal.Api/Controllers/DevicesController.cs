@@ -1,5 +1,6 @@
 using DevicePortal.Api.DTOs;
 using DevicePortal.Api.Extensions;
+using DevicePortal.Api.Models;
 using DevicePortal.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,14 +22,15 @@ public class DevicesController : ControllerBase
     /// </summary>
     /// <param name="page">Page number (starting from 1)</param>
     /// <param name="pageSize">Number of items per page (max 100)</param>
+    /// <param name="status">Optional status filter (Active, Retired, UnderRepair)</param>
     /// <returns>Paginated device list</returns>
     [HttpGet]
     [ProducesResponseType( typeof( DevicePagedResponseDto ), StatusCodes.Status200OK )]
     [ProducesResponseType( typeof( ApiErrorResponse ), StatusCodes.Status400BadRequest )]
-    public async Task<IActionResult> Get( [FromQuery] int page = 1, [FromQuery] int pageSize = 20 )
+    public async Task<IActionResult> Get( [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] DeviceStatus? status = null )
     {
         // ✅ Controller only handles HTTP concerns - delegate business logic to service
-        var result = await _deviceService.GetDevicesAsync( page, pageSize );
+        var result = await _deviceService.GetDevicesAsync( page, pageSize, status );
 
         if ( !result.IsSuccess )
             return BadRequest( new ApiErrorResponse { Error = result.ErrorMessage! } );
@@ -87,5 +89,48 @@ public class DevicesController : ControllerBase
 
         var responseDto = result.Device!.ToDto();
         return CreatedAtAction( nameof( GetById ), new { id = responseDto.Id }, responseDto );
+    }
+
+    /// <summary>
+    /// Delete a device by ID
+    /// </summary>
+    /// <param name="id">Device ID</param>
+    /// <returns>No content on success</returns>
+    [HttpDelete( "{id:int}" )]
+    [ProducesResponseType( StatusCodes.Status204NoContent )]
+    [ProducesResponseType( typeof( ApiErrorResponse ), StatusCodes.Status400BadRequest )]
+    [ProducesResponseType( StatusCodes.Status404NotFound )]
+    public async Task<IActionResult> Delete( int id )
+    {
+        // ✅ Controller only handles HTTP concerns - delegate to service
+        var result = await _deviceService.DeleteDeviceAsync( id );
+
+        if ( !result.IsSuccess )
+        {
+            if ( result.ErrorMessage == "NotFound" )
+                return NotFound();
+
+            return BadRequest( new ApiErrorResponse { Error = result.ErrorMessage! } );
+        }
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Get device status distribution for charts
+    /// </summary>
+    /// <returns>Status distribution data</returns>
+    [HttpGet( "status-distribution" )]
+    [ProducesResponseType( typeof( DeviceStatusDistributionDto ), StatusCodes.Status200OK )]
+    [ProducesResponseType( typeof( ApiErrorResponse ), StatusCodes.Status400BadRequest )]
+    public async Task<IActionResult> GetStatusDistribution()
+    {
+        // ✅ Controller only handles HTTP concerns - delegate to service
+        var result = await _deviceService.GetDeviceStatusDistributionAsync();
+
+        if ( !result.IsSuccess )
+            return BadRequest( new ApiErrorResponse { Error = result.ErrorMessage! } );
+
+        return Ok( result.ToDto() );
     }
 }

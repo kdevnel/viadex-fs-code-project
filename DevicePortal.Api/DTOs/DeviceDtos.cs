@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using DevicePortal.Api.Models;
 
 namespace DevicePortal.Api.DTOs;
 
@@ -15,6 +16,8 @@ public class DeviceCreateDto
     [Required( ErrorMessage = "Monthly price is required" )]
     [Range( 0.01, 10000, ErrorMessage = "Monthly price must be between £0.01 and £10,000" )]
     public decimal MonthlyPrice { get; set; }
+
+    public DeviceStatus Status { get; set; } = DeviceStatus.Active;
 }
 
 public class DeviceResponseDto
@@ -24,6 +27,7 @@ public class DeviceResponseDto
     public string Model { get; set; } = string.Empty;
     public decimal MonthlyPrice { get; set; }
     public DateTime PurchaseDate { get; set; }
+    public DeviceStatus Status { get; set; }
 }
 
 public class DevicePagedResponseDto
@@ -36,4 +40,9 @@ public class ApiErrorResponse
 {
     public string Error { get; set; } = string.Empty;
     public List<string> Details { get; set; } = new();
+}
+
+public class DeviceStatusDistributionDto
+{
+    public Dictionary<string, int> Distribution { get; set; } = new();
 }
