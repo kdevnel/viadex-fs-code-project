@@ -11,14 +11,15 @@
       <div class="filters-row">
         <!-- Search Input -->
         <div class="filter-group">
-          <label for="search" class="filter-label">Search</label>
+          <label for="search" class="filter-label">Search <span class="not-implemented">(Demo - Not Implemented)</span></label>
           <input
             id="search"
             v-model="searchTerm"
             type="text"
-            placeholder="Search devices by name or model..."
-            class="filter-input"
+            placeholder="Search devices by name..."
+            class="filter-input filter-disabled"
             @input="handleSearchChange"
+            disabled
           />
         </div>
 
@@ -303,7 +304,8 @@ const newDevice = ref<DeviceCreateRequest>({
 
 // Computed properties
 const hasActiveFilters = computed(() => {
-  return searchTerm.value.trim() !== '' || statusFilter.value !== '';
+  // Only consider status filter since search is not implemented
+  return statusFilter.value !== '';
 });
 
 const visiblePages = computed(() => {
@@ -324,14 +326,12 @@ const visiblePages = computed(() => {
 
 // Methods
 const handleSearchChange = () => {
-  // Debounce search input
-  clearTimeout(searchTimeout.value);
-  searchTimeout.value = setTimeout(() => {
-    deviceStore.updateFilters({ searchTerm: searchTerm.value, page: 1 });
-  }, 300);
+  // Search is not implemented in this demo
+  if (searchTerm.value.trim() !== '') {
+    alert('Search functionality is not implemented in this demo version. Please use the status filter instead.');
+    searchTerm.value = ''; // Clear the input
+  }
 };
-
-const searchTimeout = ref<ReturnType<typeof setTimeout>>();
 
 const handleStatusChange = () => {
   deviceStore.updateFilters({ status: statusFilter.value, page: 1 });
@@ -522,6 +522,19 @@ watch(
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filter-disabled {
+  background-color: #f9fafb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.not-implemented {
+  font-size: 0.75rem;
+  color: #f59e0b;
+  font-weight: 400;
+  font-style: italic;
 }
 
 /* Stats */
