@@ -1,131 +1,123 @@
-// Device-specific API service using native fetch
-import apiClient, { type ApiResponse } from './api';
+// Device API service using the native fetch client
+import api from './api';
+import type {
+  Device,
+  DeviceCreateRequest,
+  DevicePagedResult,
+  DeviceFilters
+} from '@/types/device';
+import { DEVICE_STATUS_LABELS } from '@/types/device';
 
-// Device types matching your backend DTOs
-export interface Device {
-  id: number;
-  name: string;
-  model: string;
-  monthlyPrice: number;
-  purchaseDate: string;
-  status?: 'Active' | 'Retired' | 'UnderRepair';
-}
+// Re-export types for convenience
+export type { Device, DeviceCreateRequest, DevicePagedResult, DeviceFilters };
 
-export interface DeviceCreateRequest {
-  name: string;
-  model: string;
-  monthlyPrice: number;
-}
-
-// Backend response structure (actual runtime response - lowercase properties)
-export interface BackendDevicePagedResponse {
-  total: number;
-  items: Device[];
-}
-
-// Frontend expected structure
-export interface DevicePagedResult {
-  total: number;
-  items: Device[];
-  isSuccess: boolean;
-  errorMessage?: string;
-}
-
-export interface DeviceFilters {
-  page?: number;
-  pageSize?: number;
-  status?: string;
-  searchTerm?: string;
-}
-
-// Device API service
 export const deviceApi = {
-    // Get paginated devices with filtering
-  async getDevices(filters: DeviceFilters = {}): Promise<DevicePagedResult> {
+  // Get all devices with optional filtering and pagination
+  async getDevices(params?: {
+    page?: number;
+    pageSize?: number;
+    status?: string;
+    searchTerm?: string;
+  }): Promise<DevicePagedResult> {
+    const queryParams = new URLSearchParams();
+
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.searchTerm) queryParams.append('searchTerm', params.searchTerm);
+
+    const endpoint = `/api/devices${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
     try {
-      const params = {
-        page: String(filters.page || 1),
-        pageSize: String(filters.pageSize || 20),
-        ...(filters.status && { status: filters.status }),
-        ...(filters.searchTerm && { searchTerm: filters.searchTerm }),
-      };
+      type BackendDevice = Omit<Device, 'statusName'>;
+      const response = await api.get<{ total: number; items: BackendDevice[] }>(endpoint);
 
-      const response: ApiResponse<BackendDevicePagedResponse> = await apiClient.get('/api/devices', params);
+      // Transform items to add statusName
+      const transformedItems: Device[] = response.data.items.map(item => ({
+        ...item,
+        statusName: DEVICE_STATUS_LABELS[item.status] || 'Unknown'
+      }));
 
-      // The API returns lowercase properties: { total: number, items: Device[] }
       return {
         isSuccess: true,
         total: response.data.total,
-        items: response.data.items,
+        items: transformedItems
       };
     } catch (error) {
+      console.error('Error fetching devices:', error);
       return {
         isSuccess: false,
-        errorMessage: error instanceof Error ? error.message : 'Failed to fetch devices',
         total: 0,
         items: [],
+        errorMessage: error instanceof Error ? error.message : 'Failed to fetch devices'
       };
     }
   },
 
-  // Get single device by ID
-  async getDevice(id: number): Promise<{ device?: Device; error?: string }> {
+  // Get device by ID
+  async getDeviceById(id: number): Promise<Device | null> {
     try {
-      const response: ApiResponse<Device> = await apiClient.get(`/api/devices/${id}`);
-      return { device: response.data };
-    } catch (error) {
+      type BackendDevice = Omit<Device, 'statusName'>;
+      const response = await api.get<BackendDevice>(`/api/devices/${id}`);
       return {
-        error: error instanceof Error ? error.message : 'Failed to fetch device'
+        ...response.data,
+        statusName: DEVICE_STATUS_LABELS[response.data.status] || 'Unknown'
       };
+    } catch (error) {
+      console.error('Error fetching device by ID:', error);
+      return null;
     }
   },
 
   // Create new device
-  async createDevice(device: DeviceCreateRequest): Promise<{ device?: Device; error?: string }> {
+  async createDevice(deviceData: DeviceCreateRequest): Promise<Device | null> {
     try {
-      const response: ApiResponse<Device> = await apiClient.post('/api/devices', device);
-      return { device: response.data };
-    } catch (error) {
+      type BackendDevice = Omit<Device, 'statusName'>;
+      const response = await api.post<BackendDevice>('/api/devices', deviceData);
       return {
-        error: error instanceof Error ? error.message : 'Failed to create device'
+        ...response.data,
+        statusName: DEVICE_STATUS_LABELS[response.data.status] || 'Unknown'
       };
+    } catch (error) {
+      console.error('Error creating device:', error);
+      return null;
     }
   },
 
   // Update device
-  async updateDevice(id: number, device: Partial<DeviceCreateRequest>): Promise<{ device?: Device; error?: string }> {
+  async updateDevice(id: number, deviceData: Partial<DeviceCreateRequest>): Promise<Device | null> {
     try {
-      const response: ApiResponse<Device> = await apiClient.put(`/api/devices/${id}`, device);
-      return { device: response.data };
-    } catch (error) {
+      type BackendDevice = Omit<Device, 'statusName'>;
+      const response = await api.put<BackendDevice>(`/api/devices/${id}`, deviceData);
       return {
-        error: error instanceof Error ? error.message : 'Failed to update device'
+        ...response.data,
+        statusName: DEVICE_STATUS_LABELS[response.data.status] || 'Unknown'
       };
+    } catch (error) {
+      console.error('Error updating device:', error);
+      return null;
     }
   },
 
   // Delete device
-  async deleteDevice(id: number): Promise<{ success: boolean; error?: string }> {
+  async deleteDevice(id: number): Promise<boolean> {
     try {
-      await apiClient.delete(`/api/devices/${id}`);
-      return { success: true };
+      await api.delete(`/api/devices/${id}`);
+      return true;
     } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to delete device'
-      };
+      console.error('Error deleting device:', error);
+      return false;
     }
   },
 
-  // Get device status distribution for charts
-  async getStatusDistribution(): Promise<{ data?: Record<string, number>; error?: string }> {
+  // Get status distribution for charts
+  async getStatusDistribution(): Promise<Record<string, number> | null> {
     try {
-      const response: ApiResponse<Record<string, number>> = await apiClient.get('/api/devices/status-distribution');
-      return { data: response.data };
+      const response = await api.get<Record<string, number>>('/api/devices/status-distribution');
+      return response.data;
     } catch (error) {
-      return {
-        error: error instanceof Error ? error.message : 'Failed to fetch status distribution'
-      };
+      console.error('Error fetching status distribution:', error);
+      return null;
     }
-  },
+  }
 };

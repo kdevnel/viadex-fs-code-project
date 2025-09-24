@@ -107,8 +107,8 @@ if ( await context.Devices.AnyAsync() )
 
 ## Frontend Integration Patterns
 
-### Planned Vue 3 + TypeScript Architecture
-The frontend will follow these integration patterns with the API:
+### Vue 3 + TypeScript Architecture
+The frontend follows established integration patterns with the API:
 
 ### API Client Structure
 ```typescript
@@ -428,3 +428,405 @@ curl -k "https://localhost:7027/api/shipments?status=2"
 ```
 
 When adding new entities, maintain the established patterns: create service interface, implement business logic in service, create DTOs with validation, add mapping extensions, and implement thin controllers.
+
+## Unified Frontend View Patterns
+
+### ✅ Established Vue Component Architecture
+The frontend follows **unified patterns** across all views for consistency and maintainability. All new views should follow these established patterns based on DevicesView and ShipmentsView implementations.
+
+### 1. Component Structure Pattern
+```vue
+<template>
+  <!-- Status Overview Cards -->
+  <section class="overview">
+    <div 
+      v-for="card in statusCards" 
+      :key="card.label"
+      :class="['overview-card', { active: filters.status === card.status }]"
+      @click="setStatusFilter(card.status)"
+    >
+      <h3>{{ card.label }}</h3>
+      <p class="count" :style="{ color: card.color }">{{ card.value }}</p>
+    </div>
+  </section>
+
+  <!-- List Header with Controls -->
+  <div class="list-header">
+    <h2>{{ entityName }} Management</h2>
+    <div class="list-controls">
+      <select 
+        v-model="filters.status" 
+        @change="updateStatusFilter" 
+        class="status-filter"
+      >
+        <option :value="undefined">All Statuses</option>
+        <option v-for="status in statusOptions" :key="status.value" :value="status.value">
+          {{ status.label }}
+        </option>
+      </select>
+      <button @click="clearFilters" class="clear-filters">Clear Filters</button>
+    </div>
+  </div>
+
+  <!-- CSS Grid Table Layout -->
+  <div class="entity-table">
+    <div class="table-header">
+      <div>Column 1</div>
+      <div>Column 2</div>
+      <!-- Additional columns -->
+    </div>
+    <div v-for="item in store.items" :key="item.id" class="table-row">
+      <div class="col-name">
+        <strong>{{ item.name }}</strong>
+      </div>
+      <!-- Additional data columns -->
+      <div class="col-actions">
+        <button @click="handleView(item)">View</button>
+        <button @click="handleEdit(item)">Edit</button>
+        <button @click="handleDelete(item)">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Unified Pagination -->
+  <div class="pagination">
+    <button 
+      @click="store.goToPage(store.filters.page - 1)"
+      :disabled="store.filters.page <= 1"
+      class="page-button"
+    >
+      Previous
+    </button>
+    <span class="page-info">
+      Page {{ store.filters.page }} of {{ store.totalPages }}
+      ({{ store.totalItems }} total)
+    </span>
+    <button 
+      @click="store.goToPage(store.filters.page + 1)"
+      :disabled="store.filters.page >= store.totalPages"
+      class="page-button"
+    >
+      Next
+    </button>
+  </div>
+</template>
+```
+
+### 2. Script Composition Pattern
+```typescript
+<script setup lang="ts">
+import { reactive, computed, onMounted } from 'vue';
+import { useEntityStore } from '@/stores/useEntity';
+import type { Entity, EntityStatus } from '@/types/entity';
+
+// Store initialization
+const store = useEntityStore();
+
+// Local reactive state
+const filters = reactive({
+  status: undefined as number | undefined
+});
+
+// Status configuration (centralized constants)
+const ENTITY_STATUS_COLORS = {
+  [EntityStatus.Status1]: '#10b981', // Green
+  [EntityStatus.Status2]: '#6b7280', // Gray  
+  [EntityStatus.Status3]: '#f59e0b'  // Orange
+} as const;
+
+// Computed status cards for overview
+const statusCards = computed(() => [
+  {
+    label: 'Status 1',
+    value: store.statusDistribution.status1,
+    color: ENTITY_STATUS_COLORS[EntityStatus.Status1],
+    status: EntityStatus.Status1
+  },
+  // Additional status cards...
+]);
+
+// Unified methods pattern
+const setStatusFilter = async (status?: number) => {
+  filters.status = status;
+  await store.setStatusFilter(status);
+};
+
+const updateStatusFilter = async () => {
+  await store.setStatusFilter(filters.status);
+};
+
+const clearFilters = async () => {
+  filters.status = undefined;
+  await store.clearFilters();
+};
+
+// CRUD operation handlers
+const handleView = (item: Entity) => {
+  store.selectEntity(item);
+  // Navigate or show modal
+};
+
+const handleEdit = (item: Entity) => {
+  // Navigate to edit form
+};
+
+const handleDelete = async (item: Entity) => {
+  if (confirm(`Delete "${item.name}"?`)) {
+    const result = await store.deleteEntity(item.id);
+    if (!result.success) {
+      alert('Failed to delete: ' + result.error);
+    }
+  }
+};
+
+// Utility functions
+const getStatusClass = (status?: number | string) => {
+  // Convert numeric to string and map to CSS classes
+  // Return: 'status-badge status-{name}'
+};
+
+// Initialize on mount
+onMounted(async () => {
+  await store.fetchEntities();
+});
+</script>
+```
+
+### 3. Pinia Store Pattern
+```typescript
+// stores/useEntity.ts
+export const useEntityStore = defineStore('entity', {
+  state: () => ({
+    items: [] as Entity[],
+    filters: {
+      page: 1,
+      pageSize: 20,
+      status: undefined as number | undefined
+    },
+    loading: false,
+    error: null as string | null,
+    selectedEntity: null as Entity | null
+  }),
+
+  getters: {
+    // Status distribution for overview cards
+    statusDistribution(): Record<string, number> {
+      return this.items.reduce((acc, item) => {
+        const status = String(item.status);
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+    },
+
+    totalPages(): number {
+      return Math.ceil(this.totalItems / this.filters.pageSize);
+    },
+
+    totalItems(): number {
+      // Filter items based on current filters
+      return this.getFilteredItems().length;
+    }
+  },
+
+  actions: {
+    // Unified filtering methods
+    async setStatusFilter(status?: number) {
+      this.filters.status = status;
+      this.filters.page = 1; // Reset to first page
+      await this.fetchEntities();
+    },
+
+    async clearFilters() {
+      this.filters = { page: 1, pageSize: 20, status: undefined };
+      await this.fetchEntities();
+    },
+
+    async goToPage(page: number) {
+      if (page >= 1 && page <= this.totalPages) {
+        this.filters.page = page;
+        await this.fetchEntities();
+      }
+    },
+
+    // CRUD operations with result pattern
+    async fetchEntities() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const result = await entityApi.getEntities(this.filters);
+        if (result.isSuccess) {
+          this.items = result.items || [];
+        } else {
+          this.error = result.errorMessage || 'Failed to fetch';
+        }
+      } catch (error) {
+        this.error = 'Network error occurred';
+      } finally {
+        this.loading = false;
+      }
+    }
+  },
+
+  persist: {
+    storage: localStorage,
+    paths: ['filters'] // Persist user preferences
+  }
+});
+```
+
+### 4. CSS Grid Table Layout Pattern
+```scss
+.entity-table {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr 1.5fr 1.2fr 2fr; /* Adjust columns */
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr 1.5fr 1.2fr 2fr; /* Match header */
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.2s ease;
+}
+
+.table-row:hover {
+  background: #f8fafc;
+}
+```
+
+### 5. Status Handling Pattern
+```typescript
+// types/entity.ts - Numeric enums for API compatibility
+export enum EntityStatus {
+  Status1 = 1,
+  Status2 = 2,
+  Status3 = 3
+}
+
+// Centralized color constants
+export const ENTITY_STATUS_COLORS = {
+  [EntityStatus.Status1]: '#10b981', // Success green
+  [EntityStatus.Status2]: '#6b7280', // Neutral gray
+  [EntityStatus.Status3]: '#f59e0b'  // Warning orange
+} as const;
+
+// Status display mapping
+export const ENTITY_STATUS_LABELS = {
+  [EntityStatus.Status1]: 'Active',
+  [EntityStatus.Status2]: 'Inactive', 
+  [EntityStatus.Status3]: 'Pending'
+} as const;
+```
+
+### 6. Required View Features Checklist
+Every view implementing this pattern must include:
+
+✅ **Status Overview Cards** - Interactive cards showing distribution with filtering
+✅ **Unified Filtering** - Status dropdown + clear filters button
+✅ **CSS Grid Table** - Responsive grid layout instead of HTML tables  
+✅ **Consistent Pagination** - Previous/Next with page info
+✅ **CRUD Actions** - View/Edit/Delete with confirmation
+✅ **Error Handling** - Loading states and error display
+✅ **Status Badges** - Consistent styling with centralized colors
+✅ **Responsive Design** - Mobile-friendly layouts
+✅ **State Persistence** - Filter preferences saved to localStorage
+
+### 7. File Organization Requirements
+```
+src/
+├── views/
+│   └── EntityView.vue              # Main view component
+├── stores/
+│   └── useEntity.ts               # Pinia store with unified methods
+├── services/
+│   └── entityApi.ts               # API client functions
+├── types/
+│   └── entity.ts                  # TypeScript interfaces + enums
+└── components/ (optional)
+    └── EntitySpecificComponent.vue # View-specific components
+```
+
+### 8. Integration with Backend Result Pattern
+```typescript
+// Handle API responses consistently
+const result = await entityApi.getEntities(filters);
+if (result.isSuccess) {
+  this.items = result.items || [];
+  this.totalItems = result.total || 0;
+} else {
+  this.error = result.errorMessage || 'Operation failed';
+}
+```
+
+### 9. UK Context Requirements
+All sample data and UI text must use UK context:
+- **Addresses**: UK postcodes (e.g., "W1U 3AA"), British cities
+- **Names**: British surnames (Thompson, Williams, Davies)  
+- **Currency**: GBP (£) formatting
+- **Dates**: DD/MM/YYYY or British locale formatting
+
+### 10. Development Guidelines
+- **New Views**: Copy DevicesView.vue structure and adapt for entity type
+- **Store Creation**: Follow useDevicesStore.ts pattern exactly
+- **API Integration**: Use centralized api.ts client with native fetch
+- **Status Systems**: Always use numeric enums with color constants
+- **Error Handling**: Never throw exceptions, use result patterns
+- **Styling**: Use centralized CSS classes from `src/assets/styles/` - avoid duplicating styles
+
+### 11. Centralized CSS Classes Reference
+All views should use these centralized classes instead of duplicating styles:
+
+**Layout & Structure:**
+- `.page-view` - Main page container
+- `.page-header` - Page title section  
+- `.section-spacing` - Consistent section margins
+- `.stats-grid` - Overview cards grid layout
+- `.list-header` - Header with title and controls
+- `.list-controls` - Filter and action controls
+
+**Grid Tables (Modern approach):**
+- `.grid-table` - Table container with shadow and borders
+- `.grid-table-header` - Table header with background
+- `.grid-table-row` - Table row with hover effects
+- `.grid-6-cols`, `.grid-5-cols`, `.grid-4-cols` - Column templates
+
+**Table Cells:**
+- `.cell-name` - Primary content (names, titles)
+- `.cell-secondary` - Secondary content (descriptions, dates)
+- `.cell-price` - Price formatting with green color
+- `.cell-actions` - Action button containers
+
+**Status & Badges:**
+- `.status-badge` - Base status badge styling
+- `.status-active`, `.status-retired`, `.status-repair` - Device statuses
+- `.status-processing`, `.status-in-transit`, `.status-delivered`, `.status-delayed` - Shipment statuses
+
+**Controls & Actions:**
+- `.btn`, `.btn-primary`, `.btn-secondary` - Button variants
+- `.status-filter` - Status dropdown styling
+- `.clear-filters` - Clear filters button
+- `.pagination`, `.page-button`, `.page-info` - Pagination controls
+
+**Cards & Stats:**
+- `.stat-card` - Interactive status overview cards
+- `.stat-value`, `.stat-label` - Card content styling
+
+**Forms:**
+- `.form-group`, `.form-label`, `.form-input` - Form components
+- `.filter-input`, `.filter-select` - Filter-specific inputs
+
+**Responsive:** All components include mobile-first responsive design automatically.

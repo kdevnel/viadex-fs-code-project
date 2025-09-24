@@ -116,4 +116,26 @@
   .stat-value {
     font-size: var(--font-size-2xl);
   }
+
+  /* Grid Table Responsive */
+  .grid-table-header,
+  .grid-table-row {
+    grid-template-columns: 1fr !important;
+    text-align: left;
+  }
+
+  .grid-table-header > div,
+  .grid-table-row > div {
+    padding: var(--spacing-sm) 0;
+  }
+
+  .cell-actions {
+    justify-content: flex-start;
+  }
+
+  .list-header {
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    align-items: stretch;
+  }
 }

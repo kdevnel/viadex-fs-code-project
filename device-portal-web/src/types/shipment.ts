@@ -53,8 +53,8 @@ export const SHIPMENT_STATUS_LABELS: Record<number, string> = {
 };
 
 export const SHIPMENT_STATUS_COLORS: Record<number, string> = {
-  [ShipmentStatus.Processing]: '#3b82f6', // Blue
-  [ShipmentStatus.InTransit]: '#f59e0b',  // Amber
-  [ShipmentStatus.Delivered]: '#10b981',  // Green
-  [ShipmentStatus.Delayed]: '#ef4444'     // Red
+  [ShipmentStatus.Processing]: '#3b82f6',
+  [ShipmentStatus.InTransit]: '#f59e0b',
+  [ShipmentStatus.Delivered]: '#10b981',
+  [ShipmentStatus.Delayed]: '#ef4444'
 };

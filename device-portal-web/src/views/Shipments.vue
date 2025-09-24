@@ -7,7 +7,7 @@
     </div>
 
     <!-- Tracking Section -->
-    <div class="content-section">
+    <div class="content-section section-spacing">
       <div class="tracking-card">
         <h2 class="section-title">Track Your Shipment</h2>
         <div class="tracking-form">
@@ -28,23 +28,6 @@
               <span v-if="shipmentsStore.trackingLoading">Tracking...</span>
               <span v-else>Track</span>
             </button>
-          </div>
-
-          <!-- Sample tracking numbers for testing -->
-          <div class="sample-tracking">
-            <small class="sample-label">Try these sample tracking numbers:</small>
-            <div class="sample-numbers">
-              <button
-                v-for="sample in sampleTrackingNumbers"
-                :key="sample.number"
-                @click="trackingInput = sample.number"
-                class="sample-button"
-                :class="sample.statusClass"
-              >
-                {{ sample.number }}
-                <span class="sample-status">({{ sample.status }})</span>
-              </button>
-            </div>
           </div>
         </div>
 
@@ -98,10 +81,8 @@
     </div>
 
     <!-- Status Overview Section -->
-    <div class="content-section">
-      <div class="overview-cards">
-        <h2 class="section-title">Shipment Overview</h2>
-        <div class="stats-grid">
+    <div class="stats-section section-spacing">
+      <div class="stats-grid">
           <div
             v-for="stat in statusStats"
             :key="stat.label"
@@ -113,7 +94,6 @@
             <div class="stat-label">{{ stat.label }}</div>
           </div>
         </div>
-      </div>
     </div>
 
     <!-- Shipments List Section -->
@@ -159,34 +139,34 @@
       </div>
 
       <!-- Shipments Table -->
-      <div v-else class="shipments-table">
-        <div class="table-header">
-          <div class="col-tracking">Tracking Number</div>
-          <div class="col-customer">Customer</div>
-          <div class="col-status">Status</div>
-          <div class="col-destination">Destination</div>
-          <div class="col-eta">Est. Delivery</div>
-          <div class="col-created">Created</div>
+      <div v-else class="grid-table">
+        <div class="grid-table-header grid-6-cols">
+          <div>Tracking Number</div>
+          <div>Customer</div>
+          <div>Status</div>
+          <div>Destination</div>
+          <div>Est. Delivery</div>
+          <div>Created</div>
         </div>
 
         <div
           v-for="shipment in shipmentsStore.currentPageShipments"
           :key="shipment.id"
-          class="table-row"
+          class="grid-table-row grid-6-cols"
           @click="trackSpecificShipment(shipment.trackingNumber)"
         >
-          <div class="col-tracking">
+          <div class="cell-name">
             <strong>{{ shipment.trackingNumber }}</strong>
           </div>
-          <div class="col-customer">{{ shipment.customerName }}</div>
-          <div class="col-status">
+          <div class="cell-secondary">{{ shipment.customerName }}</div>
+          <div>
             <span :class="['status-badge', getStatusClass(shipment.status)]">
               {{ shipment.statusName }}
             </span>
           </div>
-          <div class="col-destination">{{ shipment.destination }}</div>
-          <div class="col-eta">{{ formatDate(shipment.estimatedDelivery) }}</div>
-          <div class="col-created">{{ formatDate(shipment.createdAt) }}</div>
+          <div class="cell-secondary">{{ shipment.destination }}</div>
+          <div class="cell-secondary">{{ formatDate(shipment.estimatedDelivery) }}</div>
+          <div class="cell-secondary">{{ formatDate(shipment.createdAt) }}</div>
         </div>
       </div>
 
@@ -220,7 +200,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive } from 'vue';
 import { useShipmentsStore } from '@/stores/useShipments';
-import { ShipmentStatus } from '@/types/shipment';
+import { ShipmentStatus, SHIPMENT_STATUS_COLORS } from '@/types/shipment';
 
 // Component name for Vue DevTools
 defineOptions({
@@ -237,38 +217,30 @@ const filters = reactive({
   status: shipmentsStore.filters.status
 });
 
-// Sample tracking numbers for easy testing
-const sampleTrackingNumbers = [
-  { number: 'TRK001234567', status: 'In Transit', statusClass: 'sample-in-transit' },
-  { number: 'TRK002345678', status: 'Delivered', statusClass: 'sample-delivered' },
-  { number: 'TRK003456789', status: 'Processing', statusClass: 'sample-processing' },
-  { number: 'TRK004567890', status: 'Delayed', statusClass: 'sample-delayed' }
-];
-
 // Status statistics for overview cards
 const statusStats = computed(() => [
   {
     label: 'Processing',
     value: shipmentsStore.statusDistribution.processing,
-    color: '#3b82f6',
+    color: SHIPMENT_STATUS_COLORS[ShipmentStatus.Processing],
     status: ShipmentStatus.Processing
   },
   {
     label: 'In Transit',
     value: shipmentsStore.statusDistribution.inTransit,
-    color: '#f59e0b',
+    color: SHIPMENT_STATUS_COLORS[ShipmentStatus.InTransit],
     status: ShipmentStatus.InTransit
   },
   {
     label: 'Delivered',
     value: shipmentsStore.statusDistribution.delivered,
-    color: '#10b981',
+    color: SHIPMENT_STATUS_COLORS[ShipmentStatus.Delivered],
     status: ShipmentStatus.Delivered
   },
   {
     label: 'Delayed',
     value: shipmentsStore.statusDistribution.delayed,
-    color: '#ef4444',
+    color: SHIPMENT_STATUS_COLORS[ShipmentStatus.Delayed],
     status: ShipmentStatus.Delayed
   }
 ]);
@@ -331,180 +303,32 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Shipment Tracker Specific Styles */
+/* Shipment-specific styles only */
+/* Most styles now come from centralized CSS */
 
+/* Shipment tracking specific components */
 .tracking-card {
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
-}
-
-.tracking-form {
-  margin-top: 1rem;
+  padding: var(--spacing-2xl);
 }
 
 .input-group {
   display: flex;
-  gap: 1rem;
-  max-width: 600px;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
 }
 
-.tracking-input {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.2s ease;
-}
-
-.tracking-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.tracking-input:disabled {
-  background-color: #f8fafc;
-  cursor: not-allowed;
-}
-
-.track-button {
-  padding: 0.75rem 2rem;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.track-button:hover:not(:disabled) {
-  background: #2563eb;
-  transform: translateY(-1px);
-}
-
-.track-button:disabled {
-  background: #cbd5e1;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.sample-tracking {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: #f8fafc;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-}
-
-.sample-label {
-  color: #64748b;
-  font-weight: 500;
-  display: block;
-  margin-bottom: 0.5rem;
-}
-
-.sample-numbers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.sample-button {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: white;
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: all 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.sample-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.sample-status {
-  font-size: 0.7rem;
-  opacity: 0.7;
-}
-
-.sample-in-transit:hover {
-  border-color: #f59e0b;
-  background: rgba(245, 158, 11, 0.05);
-}
-
-.sample-delivered:hover {
-  border-color: #10b981;
-  background: rgba(16, 185, 129, 0.05);
-}
-
-.sample-processing:hover {
-  border-color: #3b82f6;
-  background: rgba(59, 130, 246, 0.05);
-}
-
-.sample-delayed:hover {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.05);
-}
-
-.tracking-result {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  background: #f8fafc;
-  border-radius: 8px;
-  border-left: 4px solid #10b981;
-}
-
-.result-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.result-header h3 {
-  margin: 0;
-  color: #1e293b;
-}
-
-.clear-button {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  color: #64748b;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.clear-button:hover {
-  background: #e2e8f0;
-  color: #334155;
-}
-
-.shipment-details {
-  display: grid;
-  gap: 0.75rem;
+.tracking-details {
+  background: var(--color-gray-50);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-xl);
+  margin-top: var(--spacing-xl);
 }
 
 .detail-row {
   display: flex;
   justify-content: space-between;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #e2e8f0;
+  padding: var(--spacing-sm) 0;
+  border-bottom: var(--border-width) solid var(--color-gray-200);
 }
 
 .detail-row:last-child {
@@ -512,250 +336,29 @@ onMounted(async () => {
 }
 
 .detail-row .label {
-  font-weight: 600;
-  color: #64748b;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
   min-width: 150px;
 }
 
 .detail-row .value {
-  color: #1e293b;
+  color: var(--color-text-primary);
   text-align: right;
 }
 
-.overview-cards {
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.stat-card {
-  padding: 1.5rem;
-  background: #f8fafc;
-  border-radius: 8px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 2px solid transparent;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.stat-card.active {
-  border-color: #3b82f6;
-  background: rgba(59, 130, 246, 0.05);
-}
-
-.stat-value {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: #64748b;
-  font-weight: 500;
-}
-
-.list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.list-controls {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.status-filter {
-  padding: 0.5rem 1rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  background: white;
-  font-size: 0.9rem;
+/* Table rows are clickable for tracking */
+.grid-table-row {
   cursor: pointer;
 }
 
-.status-filter:focus {
-  outline: none;
-  border-color: #3b82f6;
-}
-
-.clear-filters {
-  padding: 0.5rem 1rem;
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  color: #475569;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.clear-filters:hover {
-  background: #e2e8f0;
-}
-
-.shipments-table {
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.table-header {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 2fr 1.2fr 1fr;
-  gap: 1rem;
-  padding: 1rem;
-  background: #f8fafc;
-  font-weight: 600;
-  color: #374151;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.table-row {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 2fr 1.2fr 1fr;
-  gap: 1rem;
-  padding: 1rem;
-  border-bottom: 1px solid #f3f4f6;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.table-row:hover {
-  background: #f8fafc;
-}
-
-.table-row:last-child {
-  border-bottom: none;
-}
-
-.col-tracking strong {
-  color: #3b82f6;
-}
-
-.col-destination {
-  font-size: 0.9rem;
-  color: #6b7280;
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 2rem;
-  padding: 1rem;
-}
-
-.page-button {
-  padding: 0.5rem 1rem;
-  background: white;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.page-button:hover:not(:disabled) {
-  background: #f9fafb;
-  border-color: #9ca3af;
-}
-
-.page-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.page-info {
-  font-size: 0.9rem;
-  color: #6b7280;
-}
-
-/* Status Badge Variations */
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.status-processing {
-  background: rgba(59, 130, 246, 0.1);
-  color: #1d4ed8;
-}
-
-.status-in-transit {
-  background: rgba(245, 158, 11, 0.1);
-  color: #d97706;
-}
-
-.status-delivered {
-  background: rgba(16, 185, 129, 0.1);
-  color: #047857;
-}
-
-.status-delayed {
-  background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
-}
-
-.status-unknown {
-  background: rgba(107, 114, 128, 0.1);
-  color: #4b5563;
-}
-
-/* Responsive Design */
+/* Responsive adjustments for shipment-specific components */
 @media (max-width: 768px) {
   .input-group {
     flex-direction: column;
   }
 
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .list-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-
-  .table-header,
-  .table-row {
-    grid-template-columns: 1fr;
-    text-align: left;
-  }
-
-  .table-header > div,
-  .table-row > div {
-    padding: 0.5rem 0;
-  }
-
-  .table-header > div::before,
-  .table-row > div::before {
-    content: attr(data-label) ': ';
-    font-weight: 600;
-    color: #64748b;
+  .tracking-card {
+    padding: var(--spacing-xl);
   }
 }
 </style>
