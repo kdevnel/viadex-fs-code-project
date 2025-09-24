@@ -9,8 +9,9 @@ You can read detailed setup instructions at [SETUP.md](./SETUP.md)
 
 ## General Notes
 
+- This repo demonstrates strong version control principles. Code was built on feature branches off develop at first and merged through Pull Requests to demonstrate fluency. This is generally overkill on a project of this size with one engineer.
 - I heavily relied on AI as a code assistant to bridge any gap between my fundamental knowledge and my lack of experience in the specific tech stack. I see this is a strength as I can accomplish far more when I'm augmented.
-- I engineered the app with more complexity than I normally would in order to properly understand how I would architect this in .NET/Vue. Following a successful offer, I would work on a strong early days plan to upskill myself in the tech stack during my probation.
+- I engineered the app with more complexity than I normally would in order to properly understand how I would architect this in .NET/Vue. Following a successful offer, I would work on a strong early days plan to upskill myself in the tech stack during my probation. That said, I do believe it's important to show strong planning for growth when building an app foundation. Added complexities in the backend are useful down the line.
 - Purchase date is automatically defined in the DeviceService to show auto-creation of data at creation of a database entity. Other fields require some input.
 - I have shown two levels of validation for monthly price based on a maximum value of £10,000. I have added a DB constraint to ensure a maximum of 99,999.00 in that field. I have also validated the value in the Devices DTO to fit the business requirement. You can see this in shipments too.
 - Validations applied to database fields and automatic value setting on fields such as delivery day.
