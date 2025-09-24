@@ -216,26 +216,25 @@ const statusDistribution = computed(() => {
 ```
 device-portal-web/src/
 ├── views/
-│   ├── DevicesView.vue            # ✅ Device management with status system
-│   ├── ShipmentTrackerView.vue    # 📋 Track shipments by number
+│   ├── Devices.vue                # ✅ Device management with status system
+│   ├── Shipments.vue              # ✅ Shipment tracking with UK context
 │   └── QuoteGeneratorView.vue     # 📋 Calculate leasing quotes
 ├── components/
-│   ├── DeviceTable.vue            # ✅ Implemented in DevicesView.vue
 │   ├── DeviceStatusChart.vue      # 📋 Device distribution by status
 │   ├── ShipmentStatusChart.vue    # 📋 Shipments by status/ETA
 │   └── QuoteCalculator.vue        # 📋 Quote form with validation
 ├── stores/
 │   ├── useDevices.ts              # ✅ Device management with status distribution
-│   ├── useShipments.ts            # 📋 Shipment tracking state
+│   ├── useShipments.ts            # ✅ Shipment tracking state with persistence
 │   └── useQuotes.ts               # 📋 Quote calculation state
 ├── services/
 │   ├── api.ts                     # ✅ Centralized native fetch API client
 │   ├── deviceApi.ts               # ✅ Device CRUD operations
-│   ├── shipmentApi.ts             # 📋 Shipment tracking API
+│   ├── shipmentApi.ts             # ✅ Shipment tracking API operations
 │   └── quoteApi.ts                # 📋 Quote calculation API
 └── types/
     ├── device.ts                  # ✅ Device interfaces with status
-    ├── shipment.ts                # 📋 Shipment tracking types
+    ├── shipment.ts                # ✅ Shipment tracking types with enums
     └── quote.ts                   # 📋 Quote calculation types
 ```
 
@@ -262,7 +261,7 @@ public enum DeviceStatus
 }
 ```
 
-### Shipment Model (✅ Fully Implemented)
+### Shipment Model (✅ Complete with Frontend)
 ```csharp
 // Models/Shipment.cs - Complete tracking functionality
 public class Shipment
@@ -273,7 +272,7 @@ public class Shipment
     public ShipmentStatus Status { get; set; } = ShipmentStatus.Processing;
     public DateTime EstimatedDelivery { get; set; }
     public DateTime? ActualDelivery { get; set; }
-    public string Destination { get; set; } = "";
+    public string Destination { get; set; } = ""; // UK addresses
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
@@ -285,6 +284,8 @@ public enum ShipmentStatus
     Delayed = 4
 }
 ```
+
+**Frontend Implementation**: ✅ Complete Vue interface with status filtering, overview cards, and UK context
 
 ### Quote Model (Missing)
 ```csharp
@@ -330,6 +331,8 @@ GET  /api/shipments/status-distribution             // ✅ Chart data ready
 POST /api/shipments                                 // ✅ Create with validation
 PATCH /api/shipments/{id}/status                    // ✅ Update status with business rules
 ```
+
+**Frontend Integration**: ✅ Complete Vue interface with unified component patterns
 
 ### Quote Endpoints (Missing)
 ```csharp

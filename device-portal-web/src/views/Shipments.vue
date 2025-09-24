@@ -99,7 +99,7 @@
     <!-- Shipments List Section -->
     <div class="content-section">
       <div class="list-header">
-        <h2 class="section-title">All Shipments</h2>
+        <h2 class="section-title">Shipments</h2>
         <div class="list-controls">
           <select v-model="filters.status" @change="updateStatusFilter" class="status-filter">
             <option :value="undefined">All Statuses</option>

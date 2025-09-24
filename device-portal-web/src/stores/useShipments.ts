@@ -30,7 +30,7 @@ export const useShipmentsStore = defineStore('shipments', () => {
   // Persisted filter state
   const filters = ref<ShipmentFilters>({
     page: 1,
-    pageSize: 20,
+    pageSize: 5,
     status: undefined,
     searchTerm: ''
   });

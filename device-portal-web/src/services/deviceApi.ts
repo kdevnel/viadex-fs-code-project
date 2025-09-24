@@ -113,8 +113,11 @@ export const deviceApi = {
   // Get status distribution for charts
   async getStatusDistribution(): Promise<Record<string, number> | null> {
     try {
-      const response = await api.get<Record<string, number>>('/api/devices/status-distribution');
-      return response.data;
+      const response = await api.get<{ distribution: Record<string, number> }>('/api/devices/status-distribution');
+
+      // Backend returns enum names as keys ("Active", "Retired", "UnderRepair")
+      // Return them directly as they match our expected format
+      return response.data.distribution;
     } catch (error) {
       console.error('Error fetching status distribution:', error);
       return null;

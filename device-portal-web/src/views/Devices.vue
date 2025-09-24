@@ -12,7 +12,7 @@
     <div class="stats-section section-spacing">
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-value">{{ deviceStore.totalDevices }}</div>
+          <div class="stat-value">{{ deviceStore.totalDevicesFromStatus }}</div>
           <div class="stat-label">Total Devices</div>
         </div>
         <div
@@ -31,7 +31,7 @@
     <!-- Devices List Section -->
     <div class="content-section">
       <div class="list-header">
-        <h2 class="section-title">All Devices</h2>
+        <h2 class="section-title">Devices</h2>
         <div class="list-controls">
           <select v-model="filters.status" @change="updateStatusFilter" class="status-filter">
             <option :value="undefined">All Statuses</option>
