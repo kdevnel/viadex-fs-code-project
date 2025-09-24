@@ -244,10 +244,11 @@ const formatDate = (dateString: string) => {
 
 // Initialize on mount
 onMounted(async () => {
-  // Load devices if not already loaded
-  if (!devicesStore.hasDevices) {
-    await devicesStore.fetchDevices();
-  }
+  // Load all devices for quote calculator (temporarily set large page size)
+  const originalPageSize = devicesStore.filters.pageSize;
+  devicesStore.filters.pageSize = 100; // Set large page size to get all devices
+  await devicesStore.fetchDevices();
+  devicesStore.filters.pageSize = originalPageSize; // Restore original page size
 });
 </script>
 
