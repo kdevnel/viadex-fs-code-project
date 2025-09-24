@@ -12,6 +12,7 @@ builder.Services.AddDbContext<AppDbContext>( o =>
 // Service registration
 builder.Services.AddScoped<IDeviceService, DeviceService>();
 builder.Services.AddScoped<IShipmentService, ShipmentService>();
+builder.Services.AddScoped<IQuoteService, QuoteService>();
 
 // CORS configuration
 builder.Services.AddCors( o => o.AddDefaultPolicy( p =>
@@ -69,6 +70,11 @@ if ( args.Length > 0 )
             Console.WriteLine( "Shipment seeding completed. Exiting..." );
             break;
 
+        case "seed-quotes":
+            await DevicePortal.Api.Scripts.SeedDatabase.SeedQuotesAsync( context );
+            Console.WriteLine( "Quote seeding completed. Exiting..." );
+            break;
+
         case "clear":
             await DevicePortal.Api.Scripts.SeedDatabase.ClearAllAsync( context );
             Console.WriteLine( "Clear completed. Exiting..." );
@@ -84,6 +90,11 @@ if ( args.Length > 0 )
             Console.WriteLine( "Shipment clear completed. Exiting..." );
             break;
 
+        case "clear-quotes":
+            await DevicePortal.Api.Scripts.SeedDatabase.ClearQuotesAsync( context );
+            Console.WriteLine( "Quote clear completed. Exiting..." );
+            break;
+
         case "reseed":
             await DevicePortal.Api.Scripts.SeedDatabase.ReseedAllAsync( context );
             Console.WriteLine( "Reseed completed. Exiting..." );
@@ -94,12 +105,17 @@ if ( args.Length > 0 )
             Console.WriteLine( "Device reseed completed. Exiting..." );
             break;
 
+        case "reseed-quotes":
+            await DevicePortal.Api.Scripts.SeedDatabase.ReseedQuotesAsync( context );
+            Console.WriteLine( "Quote reseed completed. Exiting..." );
+            break;
+
         default:
             Console.WriteLine( $"Unknown command: {args[0]}" );
             Console.WriteLine( "Available commands:" );
-            Console.WriteLine( "  seed, seed-devices, seed-shipments" );
-            Console.WriteLine( "  clear, clear-devices, clear-shipments" );
-            Console.WriteLine( "  reseed, reseed-devices" );
+            Console.WriteLine( "  seed, seed-devices, seed-shipments, seed-quotes" );
+            Console.WriteLine( "  clear, clear-devices, clear-shipments, clear-quotes" );
+            Console.WriteLine( "  reseed, reseed-devices, reseed-quotes" );
             break;
     }
 
