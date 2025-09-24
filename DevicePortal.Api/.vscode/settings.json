@@ -1,0 +1,10 @@
+{
+  "dotnet.defaultSolution": "../viadex.sln",
+  "omnisharp.enableRoslynAnalyzers": true,
+  "editor.defaultFormatter": "ms-dotnettools.csharp",
+  "editor.formatOnSave": true,
+  "files.exclude": {
+    "**/bin": true,
+    "**/obj": true
+  }
+}
