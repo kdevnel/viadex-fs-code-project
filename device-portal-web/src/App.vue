@@ -9,6 +9,7 @@ import { RouterView } from 'vue-router'
         <h1 class="app-title">Viadex Device Portal</h1>
         <nav class="app-nav">
           <RouterLink to="/devices" class="nav-link">Devices</RouterLink>
+          <RouterLink to="/shipments" class="nav-link">Shipments</RouterLink>
         </nav>
       </div>
     </header>

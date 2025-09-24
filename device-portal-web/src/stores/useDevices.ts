@@ -1,85 +1,98 @@
 // Device store using native fetch API client
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { deviceApi, type Device, type DeviceFilters, type DeviceCreateRequest } from '@/services/deviceApi';
+import { deviceApi } from '@/services/deviceApi';
+import type {
+  Device,
+  DeviceCreateRequest,
+  DeviceStatusDistribution
+} from '@/types/device';
+import { DEVICE_STATUS_LABELS } from '@/types/device';
+
+interface DeviceFilters {
+  page: number;
+  pageSize: number;
+  status?: number;
+  searchTerm: string;
+}
 
 export const useDevicesStore = defineStore('devices', () => {
   // State
   const devices = ref<Device[]>([]);
+  const totalDevices = ref(0);
   const loading = ref(false);
   const error = ref<string | null>(null);
-  const total = ref(0);
   const selectedDevice = ref<Device | null>(null);
 
   // Persisted filter state
   const filters = ref<DeviceFilters>({
     page: 1,
-    pageSize: 20,
-    status: '',
-    searchTerm: '',
+    pageSize: 5,
+    status: undefined,
+    searchTerm: ''
   });
 
-  // Getters
-  const statusDistribution = computed(() => {
-    const distribution: Record<string, number> = {
-      Active: 0,
-      Retired: 0,
-      UnderRepair: 0,
-    };
-
-    devices.value.forEach(device => {
-      // Handle both numeric and string status values
-      let statusKey: string | undefined;
-
-      // Convert to number for comparison since backend returns numeric enum values
-      const statusAsNumber = Number(device.status);
-      const statusAsString = String(device.status);
-
-      if (statusAsNumber === 1 || statusAsString === 'Active') {
-        statusKey = 'Active';
-      } else if (statusAsNumber === 2 || statusAsString === 'Retired') {
-        statusKey = 'Retired';
-      } else if (statusAsNumber === 3 || statusAsString === 'UnderRepair') {
-        statusKey = 'UnderRepair';
-      }
-
-      if (statusKey && distribution.hasOwnProperty(statusKey)) {
-        distribution[statusKey]++;
-      }
-    });
-
-    return distribution;
+  // Status distribution for charts
+  const rawStatusDistribution = ref<DeviceStatusDistribution>({
+    active: 0,
+    retired: 0,
+    underRepair: 0
   });
 
-  const filteredDevices = computed(() => {
-    let filtered = devices.value;
+    // Getters
+  const currentPageDevices = computed(() => devices.value);
 
-    if (filters.value.status) {
-      filtered = filtered.filter(device => device.status === filters.value.status);
-    }
+  const totalPages = computed(() => Math.ceil(totalDevices.value / filters.value.pageSize));
 
-    if (filters.value.searchTerm) {
-      const search = filters.value.searchTerm.toLowerCase();
-      filtered = filtered.filter(device =>
-        device.name.toLowerCase().includes(search) ||
-        device.model.toLowerCase().includes(search)
-      );
-    }
+  const statusDistribution = computed(() => rawStatusDistribution.value);
 
-    return filtered;
+  // Total devices computed from status distribution (unfiltered total)
+  const totalDevicesFromStatus = computed(() => {
+    return rawStatusDistribution.value.active +
+           rawStatusDistribution.value.retired +
+           rawStatusDistribution.value.underRepair;
   });
 
-  const totalPages = computed(() => {
-    return Math.ceil(total.value / (filters.value.pageSize || 20));
+  const statusDistributionArray = computed(() => [
+    { label: 'Active', value: rawStatusDistribution.value.active, color: '#10b981' },
+    { label: 'Retired', value: rawStatusDistribution.value.retired, color: '#6b7280' },
+    { label: 'Under Repair', value: rawStatusDistribution.value.underRepair, color: '#f59e0b' }
+  ]);
+
+  const hasDevices = computed(() => devices.value.length > 0);
+
+  const getStatusLabel = computed(() => (status: number) => DEVICE_STATUS_LABELS[status] || 'Unknown');
+
+  const activeFiltersCount = computed(() => {
+    let count = 0;
+    if (filters.value.status) count++;
+    if (filters.value.searchTerm.trim()) count++;
+    return count;
   });
 
   const hasNextPage = computed(() => {
-    return (filters.value.page || 1) < totalPages.value;
+    return filters.value.page < totalPages.value;
   });
 
   const hasPreviousPage = computed(() => {
-    return (filters.value.page || 1) > 1;
+    return filters.value.page > 1;
   });
+
+  // Fetch status distribution from API (total counts, not affected by filters)
+  const fetchStatusDistribution = async () => {
+    try {
+      const distribution = await deviceApi.getStatusDistribution();
+      if (distribution) {
+        rawStatusDistribution.value = {
+          active: distribution.Active || 0,
+          retired: distribution.Retired || 0,
+          underRepair: distribution.UnderRepair || 0
+        };
+      }
+    } catch (error) {
+      console.error('Error fetching device status distribution:', error);
+    }
+  };
 
   // Actions
   const fetchDevices = async () => {
@@ -87,20 +100,25 @@ export const useDevicesStore = defineStore('devices', () => {
     error.value = null;
 
     try {
-      const result = await deviceApi.getDevices(filters.value);
+      const params = {
+        page: filters.value.page,
+        pageSize: filters.value.pageSize,
+        status: filters.value.status?.toString()
+      };
+
+      const result = await deviceApi.getDevices(params);
 
       if (result.isSuccess) {
-        devices.value = result.items;
-        total.value = result.total;
+        devices.value = result.items || [];
+        totalDevices.value = result.total || 0;
+        // Fetch status distribution separately (not affected by filters)
+        await fetchStatusDistribution();
       } else {
         error.value = result.errorMessage || 'Failed to fetch devices';
-        devices.value = [];
-        total.value = 0;
       }
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Network error occurred';
-      devices.value = [];
-      total.value = 0;
+      console.error('Error in fetchDevices:', err);
+      error.value = 'Network error occurred';
     } finally {
       loading.value = false;
     }
@@ -137,50 +155,60 @@ export const useDevicesStore = defineStore('devices', () => {
     }
   };
 
-  const createDevice = async (deviceData: DeviceCreateRequest) => {
-    loading.value = true;
+  const setStatusFilter = async (status?: number) => {
+    await updateFilters({ status });
+  };
+
+  const clearFilters = async () => {
+    await updateFilters({
+      status: undefined,
+      searchTerm: '',
+      page: 1
+    });
+  };
+
+  const addDevice = async (deviceData: DeviceCreateRequest): Promise<{ success: boolean; device?: Device; error?: string }> => {
     error.value = null;
 
     try {
-      const result = await deviceApi.createDevice(deviceData);
+      const device = await deviceApi.createDevice(deviceData);
 
-      if (result.device) {
-        await fetchDevices();
-        return { success: true, device: result.device };
+      if (device) {
+        devices.value.push(device);
+        await fetchStatusDistribution();
+        return { success: true, device };
       } else {
-        error.value = result.error || 'Failed to create device';
-        return { success: false, error: error.value };
+        error.value = 'Failed to create device';
+        return { success: false, error: 'Failed to create device' };
       }
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Network error occurred';
-      return { success: false, error: error.value };
-    } finally {
-      loading.value = false;
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      error.value = errorMessage;
+      return { success: false, error: errorMessage };
     }
   };
 
-  const updateDevice = async (id: number, deviceData: Partial<DeviceCreateRequest>) => {
-    loading.value = true;
+    const updateDevice = async (id: number, deviceData: DeviceCreateRequest): Promise<{ success: boolean; device?: Device; error?: string }> => {
     error.value = null;
 
     try {
-      const result = await deviceApi.updateDevice(id, deviceData);
+      const device = await deviceApi.updateDevice(id, deviceData);
 
-      if (result.device) {
-        const index = devices.value.findIndex(d => d.id === id);
+      if (device) {
+        const index = devices.value.findIndex((d: Device) => d.id === id);
         if (index !== -1) {
-          devices.value[index] = result.device;
+          devices.value[index] = device;
         }
-        return { success: true, device: result.device };
+        await fetchStatusDistribution();
+        return { success: true, device };
       } else {
-        error.value = result.error || 'Failed to update device';
-        return { success: false, error: error.value };
+        error.value = 'Failed to update device';
+        return { success: false, error: 'Failed to update device' };
       }
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Network error occurred';
-      return { success: false, error: error.value };
-    } finally {
-      loading.value = false;
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      error.value = errorMessage;
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -189,14 +217,15 @@ export const useDevicesStore = defineStore('devices', () => {
     error.value = null;
 
     try {
-      const result = await deviceApi.deleteDevice(id);
+      const success = await deviceApi.deleteDevice(id);
 
-      if (result.success) {
-        devices.value = devices.value.filter(d => d.id !== id);
-        total.value = Math.max(0, total.value - 1);
+      if (success) {
+        devices.value = devices.value.filter((d: Device) => d.id !== id);
+        totalDevices.value = Math.max(0, totalDevices.value - 1);
+        await fetchStatusDistribution();
         return { success: true };
       } else {
-        error.value = result.error || 'Failed to delete device';
+        error.value = 'Failed to delete device';
         return { success: false, error: error.value };
       }
     } catch (err) {
@@ -219,39 +248,48 @@ export const useDevicesStore = defineStore('devices', () => {
     devices.value = [];
     loading.value = false;
     error.value = null;
-    total.value = 0;
+    totalDevices.value = 0;
     selectedDevice.value = null;
     filters.value = {
       page: 1,
-      pageSize: 20,
-      status: '',
-      searchTerm: '',
+      pageSize: 5,
+      status: undefined,
+      searchTerm: ''
     };
+    rawStatusDistribution.value = { active: 0, retired: 0, underRepair: 0 };
   };
 
   return {
     // State
     devices,
+    totalDevices,
     loading,
     error,
-    total,
     selectedDevice,
     filters,
 
     // Getters
-    statusDistribution,
-    filteredDevices,
+    currentPageDevices,
     totalPages,
+    statusDistribution,
+    statusDistributionArray,
+    totalDevicesFromStatus,
+    hasDevices,
+    getStatusLabel,
+    activeFiltersCount,
     hasNextPage,
     hasPreviousPage,
 
     // Actions
     fetchDevices,
+    fetchStatusDistribution,
     updateFilters,
     nextPage,
     previousPage,
     goToPage,
-    createDevice,
+    setStatusFilter,
+    clearFilters,
+    addDevice,
     updateDevice,
     deleteDevice,
     selectDevice,
