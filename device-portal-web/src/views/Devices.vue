@@ -28,6 +28,11 @@
       </div>
     </div>
 
+    <!-- Device Status Chart Section -->
+    <div class="chart-section section-spacing">
+      <DeviceStatusChart />
+    </div>
+
     <!-- Devices List Section -->
     <div class="content-section">
       <div class="list-header">
@@ -217,6 +222,7 @@ import { ref, computed, onMounted, reactive } from 'vue';
 import { useDevicesStore } from '@/stores/useDevices';
 import type { Device, DeviceCreateRequest } from '@/services/deviceApi';
 import { DeviceStatus, DEVICE_STATUS_COLORS } from '@/types/device';
+import DeviceStatusChart from '@/components/DeviceStatusChart.vue';
 
 // Component name for Vue DevTools
 defineOptions({

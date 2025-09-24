@@ -96,6 +96,11 @@
         </div>
     </div>
 
+    <!-- Shipment Status Chart Section -->
+    <div class="chart-section section-spacing">
+      <ShipmentStatusChart />
+    </div>
+
     <!-- Shipments List Section -->
     <div class="content-section">
       <div class="list-header">
@@ -201,6 +206,7 @@
 import { ref, computed, onMounted, reactive } from 'vue';
 import { useShipmentsStore } from '@/stores/useShipments';
 import { ShipmentStatus, SHIPMENT_STATUS_COLORS } from '@/types/shipment';
+import ShipmentStatusChart from '@/components/ShipmentStatusChart.vue';
 
 // Component name for Vue DevTools
 defineOptions({
