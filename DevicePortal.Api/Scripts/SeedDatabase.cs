@@ -192,20 +192,118 @@ public static class SeedDatabase
         Console.WriteLine( $"Successfully cleared {shipmentCount} shipments from the database." );
     }
 
+    public static async Task SeedQuotesAsync( AppDbContext context )
+    {
+        // Check if quotes already exist
+        if ( await context.Quotes.AnyAsync() )
+        {
+            Console.WriteLine( "Database already contains quotes. Skipping seed." );
+            return;
+        }
+
+        Console.WriteLine( "Seeding database with sample quotes..." );
+
+        // Get existing devices for quote relationships
+        var devices = await context.Devices.Take( 5 ).ToListAsync();
+        if ( !devices.Any() )
+        {
+            Console.WriteLine( "No devices found. Please seed devices first." );
+            return;
+        }
+
+        var random = new Random();
+        var customerNames = new[]
+        {
+            "James Thompson", "Sarah Williams", "Michael Davies", "Emily Clarke",
+            "Robert Roberts", "Lisa Jones", "David Wilson", "Emma Brown",
+            "Tom Anderson", "Sophie Taylor", "Alex Miller", "Kate Johnson"
+        };
+
+        var quotes = new List<Quote>();
+
+        foreach ( var device in devices )
+        {
+            // Create 2-3 quotes per device with different configurations
+            var quotesPerDevice = random.Next( 2, 4 );
+
+            for ( var i = 0; i < quotesPerDevice; i++ )
+            {
+                var customerName = customerNames[random.Next( customerNames.Length )];
+                var durationMonths = new[] { 6, 12, 18, 24, 36 }[random.Next( 5 )];
+                var supportTier = ( SupportTier ) random.Next( 1, 4 );
+
+                // Calculate pricing
+                var monthlyRate = device.MonthlyPrice;
+                var supportMultiplier = supportTier switch {
+                    SupportTier.Basic => 0.0m,
+                    SupportTier.Standard => 0.2m,
+                    SupportTier.Premium => 0.5m,
+                    _ => 0.0m
+                };
+
+                var supportRate = monthlyRate * supportMultiplier;
+                var totalMonthlyCost = monthlyRate + supportRate;
+                var totalCost = totalMonthlyCost * durationMonths;
+
+                var quote = new Quote {
+                    DeviceId = device.Id,
+                    CustomerName = customerName,
+                    DurationMonths = durationMonths,
+                    SupportTier = supportTier,
+                    MonthlyRate = monthlyRate,
+                    SupportRate = supportRate,
+                    TotalMonthlyCost = totalMonthlyCost,
+                    TotalCost = totalCost,
+                    CreatedAt = DateTime.UtcNow.AddDays( -random.Next( 1, 30 ) ),
+                    ValidUntil = DateTime.UtcNow.AddDays( random.Next( 10, 60 ) )
+                };
+
+                quotes.Add( quote );
+            }
+        }
+
+        await context.Quotes.AddRangeAsync( quotes );
+        await context.SaveChangesAsync();
+
+        Console.WriteLine( $"Successfully seeded {quotes.Count} quotes to the database." );
+    }
+
+    public static async Task ClearQuotesAsync( AppDbContext context )
+    {
+        Console.WriteLine( "Clearing all quotes from the database..." );
+
+        var quoteCount = await context.Quotes.CountAsync();
+
+        if ( quoteCount == 0 )
+        {
+            Console.WriteLine( "Database is already empty. No quotes to clear." );
+            return;
+        }
+
+        // Remove all quotes
+        var quotes = await context.Quotes.ToListAsync();
+        context.Quotes.RemoveRange( quotes );
+        await context.SaveChangesAsync();
+
+        Console.WriteLine( $"Successfully cleared {quoteCount} quotes from the database." );
+    }
+
     public static async Task SeedAllAsync( AppDbContext context )
     {
-        Console.WriteLine( "Seeding all data (devices + shipments)..." );
+        Console.WriteLine( "Seeding all data (devices + shipments + quotes)..." );
 
         await SeedDevicesAsync( context );
         await SeedShipmentsAsync( context );
+        await SeedQuotesAsync( context );
 
         Console.WriteLine( "All seeding completed." );
     }
 
     public static async Task ClearAllAsync( AppDbContext context )
     {
-        Console.WriteLine( "Clearing all data (devices + shipments)..." );
+        Console.WriteLine( "Clearing all data (devices + shipments + quotes)..." );
 
+        await ClearQuotesAsync( context );  // Clear quotes first due to foreign key constraints
         await ClearDevicesAsync( context );
         await ClearShipmentsAsync( context );
 
@@ -224,11 +322,21 @@ public static class SeedDatabase
 
     public static async Task ReseedAllAsync( AppDbContext context )
     {
-        Console.WriteLine( "Reseeding all data (clear + seed devices + shipments)..." );
+        Console.WriteLine( "Reseeding all data (clear + seed devices + shipments + quotes)..." );
 
         await ClearAllAsync( context );
         await SeedAllAsync( context );
 
         Console.WriteLine( "Complete reseed operation completed." );
+    }
+
+    public static async Task ReseedQuotesAsync( AppDbContext context )
+    {
+        Console.WriteLine( "Reseeding quotes (clear + seed)..." );
+
+        await ClearQuotesAsync( context );
+        await SeedQuotesAsync( context );
+
+        Console.WriteLine( "Quote reseed operation completed." );
     }
 }
