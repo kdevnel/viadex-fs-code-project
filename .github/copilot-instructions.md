@@ -262,26 +262,27 @@ public enum DeviceStatus
 }
 ```
 
-### Shipment Model (Missing)
+### Shipment Model (✅ Fully Implemented)
 ```csharp
-// Models/Shipment.cs - For tracking functionality
+// Models/Shipment.cs - Complete tracking functionality
 public class Shipment
 {
     public int Id { get; set; }
-    public string TrackingNumber { get; set; } = "";
+    public string TrackingNumber { get; set; } = ""; // Unique index in DB
     public string CustomerName { get; set; } = "";
-    public ShipmentStatus Status { get; set; }
+    public ShipmentStatus Status { get; set; } = ShipmentStatus.Processing;
     public DateTime EstimatedDelivery { get; set; }
     public DateTime? ActualDelivery { get; set; }
     public string Destination { get; set; } = "";
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
 public enum ShipmentStatus
 {
-    InTransit = 1,
-    Delivered = 2,
-    Delayed = 3,
-    Processing = 4
+    Processing = 1,
+    InTransit = 2,
+    Delivered = 3,
+    Delayed = 4
 }
 ```
 
@@ -319,13 +320,15 @@ POST /api/devices                                   // ✅ Implemented
 GET  /api/devices/status-distribution               // ✅ Ready for implementation
 ```
 
-### Shipment Endpoints (Missing)
+### Shipment Endpoints (✅ Fully Implemented)
 ```csharp
 // Controllers/ShipmentsController.cs
-GET  /api/shipments/track/{trackingNumber}
-GET  /api/shipments?status=InTransit
-GET  /api/shipments/status-distribution  // For charts
-POST /api/shipments  // Admin: create shipment
+GET  /api/shipments/track/{trackingNumber}           // ✅ Core tracking feature
+GET  /api/shipments?status=InTransit&page=1&pageSize=20  // ✅ Filtering + pagination
+GET  /api/shipments/{id}                            // ✅ Get by ID
+GET  /api/shipments/status-distribution             // ✅ Chart data ready
+POST /api/shipments                                 // ✅ Create with validation
+PATCH /api/shipments/{id}/status                    // ✅ Update status with business rules
 ```
 
 ### Quote Endpoints (Missing)
@@ -340,7 +343,7 @@ GET  /api/quotes  // List user's quotes
 
 ### Required Charts
 1. **Device Status Distribution** - ✅ Data Available: Pie/donut chart showing Active, Retired, Under Repair
-2. **Shipment Status Distribution** - 📋 Pending: Bar chart showing In Transit, Delivered, Delayed
+2. **Shipment Status Distribution** - ✅ Data Available: Bar chart showing Processing, InTransit, Delivered, Delayed
 3. **Optional**: Monthly pricing trends, quote distribution by support tier
 
 ### Chart Implementation Pattern (Ready for Integration)
@@ -357,6 +360,20 @@ const deviceStatusData = computed(() => ({
     backgroundColor: ['#10b981', '#6b7280', '#f59e0b']
   }]
 }))
+
+// Shipment status data is available from API
+const shipmentStatusData = computed(() => ({
+  labels: ['Processing', 'In Transit', 'Delivered', 'Delayed'],
+  datasets: [{
+    data: [
+      shipmentStore.statusDistribution.Processing,
+      shipmentStore.statusDistribution.InTransit,
+      shipmentStore.statusDistribution.Delivered,
+      shipmentStore.statusDistribution.Delayed
+    ],
+    backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#ef4444']
+  }]
+}))
 ```
 
 - HTTPS port: `7027` (in `launchSettings.json`)
@@ -365,16 +382,49 @@ const deviceStatusData = computed(() => ({
 
 - `Program.cs` - DI container, middleware pipeline, database commands
 - `Services/DeviceService.cs` - Core business logic with result patterns  
+- `Services/ShipmentService.cs` - ✅ Shipment business logic and validation
 - `Controllers/DevicesController.cs` - HTTP handling and validation
+- `Controllers/ShipmentsController.cs` - ✅ Shipment HTTP endpoints
 - `DTOs/DeviceDtos.cs` - API contracts with validation rules
-- `Scripts/SeedDatabase.cs` - Database seeding/clearing utilities
-- `Data/AppDbContext.cs` - EF Core configuration
+- `DTOs/ShipmentDtos.cs` - ✅ Shipment API contracts
+- `Extensions/ShipmentMappingExtensions.cs` - ✅ DTO/Entity mapping
+- `Scripts/SeedDatabase.cs` - Database seeding/clearing utilities (enhanced for shipments)
+- `Data/AppDbContext.cs` - EF Core configuration (includes Shipment DbSet)
 
 ## Development Workflow
 
 1. **Database**: Start Docker container → run migrations → seed data
 2. **API**: `dotnet watch` for hot reload
-3. **Testing**: Use Swagger UI (uncomment in Program.cs) or database scripts
+3. **Testing**: Use Swagger UI (uncomment in Program.cs), database scripts, or curl commands
 4. **New features**: Follow Controller → Service → DTO → Extension mapping pattern
+
+### Enhanced Database Commands
+```bash
+# Seed all data (devices + shipments)
+dotnet run -- seed
+
+# Seed specific entities
+dotnet run -- seed-devices
+dotnet run -- seed-shipments
+
+# Clear specific entities  
+dotnet run -- clear-devices
+dotnet run -- clear-shipments
+
+# Full reseed
+dotnet run -- reseed
+```
+
+### Testing Shipment Endpoints
+```bash
+# Track shipment
+curl -k "https://localhost:7027/api/shipments/track/TRK001234567"
+
+# Get status distribution for charts
+curl -k "https://localhost:7027/api/shipments/status-distribution"
+
+# Filter by status
+curl -k "https://localhost:7027/api/shipments?status=2"
+```
 
 When adding new entities, maintain the established patterns: create service interface, implement business logic in service, create DTOs with validation, add mapping extensions, and implement thin controllers.
