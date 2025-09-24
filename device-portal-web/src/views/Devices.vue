@@ -1,9 +1,9 @@
 <template>
-  <div class="devices-view">
+  <div class="page-view">
     <!-- Header Section -->
-    <div class="header">
-      <h1 class="title">Device Management</h1>
-      <p class="subtitle">Manage your device inventory with status tracking and analytics</p>
+    <div class="page-header">
+      <h1 class="page-title">Device Management</h1>
+      <p class="page-subtitle">Manage your device inventory with status tracking and analytics</p>
     </div>
 
     <!-- Filter Controls -->
@@ -69,7 +69,7 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="stats-section">
+    <div class="stats-section section-spacing">
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-value">{{ deviceStore.total }}</div>
@@ -129,7 +129,7 @@
 
       <!-- Devices Table -->
       <div v-else class="table-container">
-        <table class="devices-table">
+        <table class="data-table">
           <thead>
             <tr>
               <th>Name</th>
@@ -146,16 +146,16 @@
               :key="device.id"
               class="device-row"
             >
-              <td class="device-name">{{ device.name }}</td>
-              <td class="device-model">{{ device.model }}</td>
+              <td class="cell-name">{{ device.name }}</td>
+              <td class="cell-secondary">{{ device.model }}</td>
               <td class="device-status">
                 <span :class="getStatusClass(device.status)">
                   {{ getStatusText(device.status) }}
                 </span>
               </td>
-              <td class="device-price">£{{ formatPrice(device.monthlyPrice) }}/month</td>
-              <td class="device-date">{{ formatDate(device.purchaseDate) }}</td>
-              <td class="device-actions">
+              <td class="cell-price">£{{ formatPrice(device.monthlyPrice) }}/month</td>
+              <td class="cell-secondary">{{ formatDate(device.purchaseDate) }}</td>
+              <td class="cell-actions">
                 <button
                   class="btn btn-small btn-secondary"
                   @click="handleViewDevice(device)"
@@ -460,483 +460,15 @@ watch(
 </script>
 
 <style scoped>
-.devices-view {
-  min-height: 100vh;
-  background-color: #f8fafc;
-  padding: 2rem;
-}
+/* Only view-specific styles that can't be centralized remain here */
 
-/* Header */
-.header {
-  margin-bottom: 2rem;
-}
-
-.title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 0.5rem 0;
-}
-
-.subtitle {
-  font-size: 1.125rem;
-  color: #64748b;
-  margin: 0;
-}
-
-/* Filters */
-.filters-section {
-  margin-bottom: 2rem;
-}
-
-.filters-row {
-  display: flex;
-  gap: 1.5rem;
-  align-items: end;
-  flex-wrap: wrap;
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.filter-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.filter-input,
-.filter-select {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  min-width: 200px;
-}
-
-.filter-input:focus,
-.filter-select:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.filter-disabled {
-  background-color: #f9fafb;
-  color: #9ca3af;
-  cursor: not-allowed;
-}
-
-.not-implemented {
-  font-size: 0.75rem;
-  color: #f59e0b;
-  font-weight: 400;
-  font-style: italic;
-}
-
-/* Stats */
-.stats-section {
-  margin-bottom: 2rem;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.stat-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.stat-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin-top: 0.25rem;
-}
-
-/* Content */
-.content-section {
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-/* Error Banner */
-.error-banner {
-  background-color: #fef2f2;
-  border-left: 4px solid #ef4444;
-  padding: 1rem;
-}
-
-.error-content {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.error-icon {
-  font-size: 1.25rem;
-}
-
-.error-message {
-  flex: 1;
-  color: #dc2626;
-  font-weight: 500;
-}
-
-.error-retry {
-  background: #dc2626;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-  cursor: pointer;
-}
-
-/* Loading */
-.loading-state {
-  padding: 4rem;
-  text-align: center;
-  color: #64748b;
-}
-
-.loading-spinner {
-  width: 2rem;
-  height: 2rem;
-  border: 2px solid #e5e7eb;
-  border-top: 2px solid #3b82f6;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Empty State */
-.empty-state {
-  padding: 4rem;
-  text-align: center;
-  color: #64748b;
-}
-
-.empty-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-}
-
-.empty-state h3 {
-  color: #374151;
-  margin-bottom: 0.5rem;
-}
-
-/* Table */
-.table-container {
-  overflow-x: auto;
-}
-
-.devices-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.devices-table th,
-.devices-table td {
-  padding: 1rem;
-  text-align: left;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.devices-table th {
-  background-color: #f9fafb;
-  font-weight: 600;
-  color: #374151;
-  font-size: 0.875rem;
-}
-
-.devices-table tr:hover {
-  background-color: #f9fafb;
-}
-
-.device-name {
-  font-weight: 500;
-  color: #1e293b;
-}
-
-.device-model {
-  color: #64748b;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.status-active {
-  background-color: #dcfce7;
-  color: #166534;
-}
-
-.status-retired {
-  background-color: #f3f4f6;
-  color: #374151;
-}
-
-.status-repair {
-  background-color: #fef3c7;
-  color: #92400e;
-}
-
-.status-unknown {
-  background-color: #f1f5f9;
-  color: #64748b;
-}
-
-.device-price {
-  font-weight: 500;
-  color: #059669;
-}
-
-.device-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-/* Pagination */
+/* Custom pagination behavior specific to devices */
 .pagination-section {
-  display: flex;
-  justify-content: between;
-  align-items: center;
-  padding: 1rem;
-  border-top: 1px solid #e5e7eb;
-  gap: 1rem;
-}
-
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.page-numbers {
-  display: flex;
-  gap: 0.25rem;
-}
-
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-decoration: none;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-primary {
-  background-color: #3b82f6;
-  color: white;
-  border-color: #3b82f6;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: #2563eb;
-  border-color: #2563eb;
-}
-
-.btn-secondary {
-  background-color: #6b7280;
-  color: white;
-  border-color: #6b7280;
-}
-
-.btn-outline {
-  background-color: transparent;
-  color: #374151;
-  border-color: #d1d5db;
-}
-
-.btn-outline:hover:not(:disabled) {
-  background-color: #f9fafb;
-  border-color: #9ca3af;
-}
-
-.btn-danger {
-  background-color: #ef4444;
-  color: white;
-  border-color: #ef4444;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background-color: #dc2626;
-  border-color: #dc2626;
-}
-
-.btn-small {
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
-}
-
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.modal-header {
-  display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
 }
 
-.modal-header h2 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #6b7280;
-  padding: 0;
-  width: 2rem;
-  height: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.25rem;
-}
-
-.modal-close:hover {
-  background-color: #f3f4f6;
-  color: #374151;
-}
-
-.modal-form {
-  padding: 1.5rem;
-}
-
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.form-input {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  box-sizing: border-box;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.modal-actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-  margin-top: 1.5rem;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .devices-view {
-    padding: 1rem;
-  }
-
-  .filters-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filter-input,
-  .filter-select {
-    min-width: auto;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .pagination-section {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .device-actions {
-    flex-direction: column;
-  }
-
-  .modal-content {
-    margin: 1rem;
-    width: auto;
-  }
+/* Specific pagination info styling for devices view */
+.pagination-info {
+  font-style: italic;
 }
 </style>

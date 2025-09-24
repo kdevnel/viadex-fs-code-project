@@ -1,0 +1,91 @@
+/* Status Badge Components */
+
+.status-badge {
+  display: inline-block;
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+
+/* Device Status Badges */
+.status-active {
+  background-color: var(--color-success-50);
+  color: var(--color-success-700);
+}
+
+.status-retired {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+.status-repair {
+  background-color: var(--color-warning-50);
+  color: var(--color-warning-700);
+}
+
+.status-unknown {
+  background-color: var(--color-slate-100);
+  color: var(--color-slate-500);
+}
+
+/* Shipment Status Badges */
+.status-processing {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-700);
+}
+
+.status-in-transit {
+  background-color: var(--color-warning-50);
+  color: var(--color-warning-700);
+}
+
+.status-delivered {
+  background-color: var(--color-success-50);
+  color: var(--color-success-700);
+}
+
+.status-delayed {
+  background-color: var(--color-danger-50);
+  color: var(--color-danger-600);
+}
+
+/* Quote Status Badges */
+.status-draft {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+.status-sent {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-700);
+}
+
+.status-accepted {
+  background-color: var(--color-success-50);
+  color: var(--color-success-700);
+}
+
+.status-rejected {
+  background-color: var(--color-danger-50);
+  color: var(--color-danger-600);
+}
+
+/* Support Tier Badges */
+.tier-basic {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+.tier-standard {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-700);
+}
+
+.tier-premium {
+  background-color: var(--color-warning-50);
+  color: var(--color-warning-700);
+}
