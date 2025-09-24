@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Devices from '@/views/Devices.vue'
 import Shipments from '@/views/Shipments.vue'
+import QuoteCalculator from '@/views/QuoteCalculator.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -19,6 +20,11 @@ const router = createRouter({
       path: '/shipments',
       name: 'shipments',
       component: Shipments
+    },
+    {
+      path: '/quotes',
+      name: 'quotes',
+      component: QuoteCalculator
     }
   ],
 })

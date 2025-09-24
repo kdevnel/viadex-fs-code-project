@@ -7,9 +7,10 @@ import { RouterView } from 'vue-router'
     <header class="app-header">
       <div class="container">
         <h1 class="app-title">Viadex Device Portal</h1>
-        <nav class="app-nav">
+                <nav class="app-nav">
           <RouterLink to="/devices" class="nav-link">Devices</RouterLink>
           <RouterLink to="/shipments" class="nav-link">Shipments</RouterLink>
+          <RouterLink to="/quotes" class="nav-link">Quote Calculator</RouterLink>
         </nav>
       </div>
     </header>
