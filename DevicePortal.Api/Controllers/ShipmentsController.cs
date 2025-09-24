@@ -87,7 +87,11 @@ public class ShipmentsController : ControllerBase
             return BadRequest( result.ErrorMessage );
         }
 
-        var responseDto = result.Shipment!.ToDto();
+        if ( result.Shipment == null )
+        {
+            return StatusCode( 500, "Shipment creation succeeded but no shipment was returned." );
+        }
+        var responseDto = result.Shipment.ToDto();
         return CreatedAtAction( nameof( GetShipment ), new { id = result.Shipment.Id }, responseDto );
     }
 
